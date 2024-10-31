@@ -1,0 +1,1097 @@
+---
+title: "Exploring Disparate Data: Part 1"
+author: "Put your group number from MyLS here: "
+date: "Due November 12th"
+---
+
+```{r active="", eval=FALSE}
+# BEGIN ASSIGNMENT 
+```
+
+```{r}
+knitr::opts_chunk$set(error = TRUE)
+# DO NOT PUT install.packages() IN AN RMD!!!
+# While you're here, make sure you group number is filled in above.
+    # (And make sure it ends with a quotation mark).
+library(tidyverse)
+theme_set(theme_bw())
+library(arrow)
+library(openxlsx)
+```
+
+List all group members here:
+
+- 
+- 
+- 
+- 
+- 
+
+This file will be submitted as an Rmd file to GradeScope. You will need to create a group on GradeScope with the correct members. *If the person who submits this does not list you, you will not get a grade on this assignment!!!* Make sure you trust the person who is submitting it!
+
+## Overview
+
+This is **Part 1** of the group assignment, in which you'll demonstrate your ability to clean the data sets.
+
+In this part, you will prepare the following data sets for analysis in Part 2. Note that you'll only need to use three of them, so you can focus on those three for cleaning and get started on Part 2.
+
+Once you've completed the relevant sections, you will have the following files in your working directory:
+
+1. `cyclones_data.parquet` contains data for hurricane strength in both the Atlantic and North Pacific basins.
+2. `ice_extent_yearly.parquet` contains the yearly ice extent for the Arctic and the Antarctic poles.
+3. `climate_awareness.parquet` contains the proportion of people from each country who answered "no", "a little", ... to a question asking about their awareness of the actual definitions of climate change.
+4. `covid_2020.parquet` contains the total reported cases of COVID-19 in the year 2020 for all countries.
+    - It also, quite helpfully, includes the continent on which each country sits, which can be joined with other data frames (with some care).
+5. `happiness.parquet` contains information about the happiness of countries in the world, as measured by the `life_ladder` question (among other survey responses).
+
+
+
+## NOAA data for Atlantic and Pacific Basin
+
+### Load in the Data
+
+In assignment 2, the NOAA data for the Atlantic was cleaned and tidied. That data will be useful for this assignment, so re-do the steps here. In this version, all of the steps can be done in a single pipeline. We'll also be doing the North Pacific (NP) basin.
+
+```{r}
+cyclone_data_address <- "https://www.nhc.noaa.gov/data/hurdat/"
+at_cyclone_filename <- "hurdat2-1851-2022-050423.txt"
+np_cyclone_filename <- "hurdat2-nepac-1949-2022-050423.txt"
+
+new_columns <- c("status", "latitude", "longitude", "max_wind",
+    "min_pressure", "NE_extend_34", "SE_extend_34", "SW_extend_34",
+    "NW_extend_34", "NE_extend_50", "SE_extend_50", "SW_extend_50",
+    "NW_extend_50", "NE_extend_64", "SE_extend_64", "SW_extend_64",
+    "NW_extend_64", "r_max_wind"
+)
+```
+
+```{r at_cyclone, error=TRUE}
+
+# Same steps as in A2, but you can put them all in the same pipeline!
+at_cyclone <- str_c(cyclone_data_address, at_cyclone_filename, sep = "") |>
+    read_csv(
+        col_names = c(as.character(1:4)),
+        progress = FALSE,
+        show_col_types = FALSE
+    ) |>
+    separate_wider_delim(
+        cols = `4`,
+        # Set the delim and the names
+        # YOUR CODE HERE
+    ) |>
+    mutate(
+        across(everything(), str_trim),
+        # make "-999" NAs, make "-99" NAs
+        # Create columns BasinNumberYear, Name, and Entries
+        across(everything(), ~na_if(., "-999")),
+        across(everything(), ~na_if(., "-99")),
+        BasinNumberYear = ifelse(is.na(status), `1`, NA),
+        Name = ifelse(is.na(status), `2`, NA),
+        Entries = ifelse(is.na(status), `3`, NA)
+    ) |>
+    relocate(BasinNumberYear, Name, Entries) |>
+    fill(BasinNumberYear, Name, Entries) |>
+    filter(!is.na(status))  |>
+    select(-Entries) |>
+    separate_wider_position(
+        BasinNumberYear,
+        # Specify the widths
+        # YOUR CODE HERE
+    ) |>
+    separate_wider_position(
+        `1`,
+        # Specify the widths
+        # YOUR CODE HERE
+    ) |>
+    separate_wider_position(
+        `2`,
+        # Specify the widths
+        # YOUR CODE HERE
+    ) |>
+    rename(
+        Identifier = `3`
+    ) |>
+    mutate(
+        across(
+            c(NameYear, ObservYear, Month, Day, Hour,
+                Minute, Number),
+            as.integer
+        )
+    ) |>
+    mutate(across(max_wind:r_max_wind, as.numeric))
+
+
+print(at_cyclone)
+```
+
+```{r}
+. = ottr::check("tests/at_cyclone.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+np_cyclone <- str_c(cyclone_data_address, np_cyclone_filename, sep = "") |>
+    # ALL of the steps all over again
+    # YOUR CODE HERE
+
+print(np_cyclone)
+```
+
+```{r}
+. = ottr::check("tests/np_cyclone.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Combine into One Data Frame
+
+Now, bind the two data frames together (row-wise). Since the `Basin` column already contains the information about which basin the cyclone was in, there's no need to specify an ID. (Hint: don't overthink this one.)
+
+Name the data frame `cyclones_data_update_0`.
+
+```{r error=TRUE}
+# YOUR CODE HERE
+
+print(cyclones_data_update_0)
+```
+
+```{r}
+. = ottr::check("tests/cyclones_data_update_1.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Fix Latitude and Longitude
+
+The latitude and longitude are not in a format that makes for nice plotting. They're encoded as "`28.0N`" for 28 degrees North and "28.0S" for 28 degrees South of the equator. By convention, "`28.0N`" should be `28` degrees (a positive number) and `28.8S` should be -28 degrees (a negative number). Similarly, `94W` should be -94 while 94E should be 94. Fix this.
+
+Write a function that takes in a vector of latitude _or_ longitude in the format of these data, then outputs a positive version of the numeric part if there's an "N" or an "E", and a negative version of the numeric part if there's a "W" or "S".
+
+There are many ways to solve this. My solution is one line and uses `parse_number()` and a single `if_else()` statement with a regex, but there are many possible ways to do this!
+
+```{r convert_latlon, error=TRUE}
+convert_latlon <- function(latlon) {
+    # YOUR CODE HERE
+}
+
+test_data <- c("49W", "49.99W", "49E", "49.99E", "49N", "49.99S", "-0.0W")
+
+# If this returns "TRUE", then your function will work on the real data.
+all.equal(
+    convert_latlon(test_data),
+    c(-49, -49.99, 49, 49.99, 49, -49.99, 0)
+)
+
+cyclones_data_update_1 <- cyclones_data_update_0 |>
+    mutate(
+        lat = convert_latlon(latitude),
+        lon = convert_latlon(longitude)
+    )
+```
+
+```{r}
+. = ottr::check("tests/convert_latlon.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Extract Dates
+
+We have a few more tasks. First, create a [datetime](https://fralfaro.github.io/r4ds/datetimes.html) object using the `make_datetime()` function so that R knows how to plot the times. Label the new column as "`date`".
+
+To do this, you must choose whether to use `ObservYear` or `NameYear`.
+
+```{r cyclones_data_update_2, error=TRUE}
+cyclones_data_update_2 <- cyclones_data_update_1 |>
+    mutate(
+        # YOUR CODE HERE
+    )
+
+print(cyclones_data_update_2)
+```
+
+```{r}
+. = ottr::check("tests/cyclones_data_update_2.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Assign Storm Categories
+
+Unlike in assignment 1, the category is not part of these data. However, we learned how storms are categorized! In particular, meteorologists use the [Saffir--Simpson hurricane wind scale (SSHWS)](https://en.wikipedia.org/wiki/Saffir%E2%80%93Simpson_scale) (note that our data are measured in knots on that scale).
+
+Categorize the cyclones based on the scale above using a `case_when()` statement based on the `max_wind` column. The code is set up to create an [*ordered factor*](https://fralfaro.github.io/r4ds/factors.html) so that R knows that the levels are ordered as TD < TS < 1 < 2 < 3 < 4 < 5.
+```{r cyclones_data}
+cat_levels <- c("TD", "TS", "1", "2", "3", "4", "5")
+
+cyclones_data <- cyclones_data_update_2 |>
+    mutate(
+        category = ordered(
+            case_when(
+                # YOUR CODE HERE
+            ),
+            levels = cat_levels
+        )
+    )
+
+print(cyclones_data)
+```
+
+
+```{r}
+. = ottr::check("tests/cyclones_update_2.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Plots and Summary Statistics!
+
+### Clean Up
+
+Now that we have a suitable data frame, save it as a parquet file with the file name `"cyclones_data.parquet"`.
+```{r}
+# YOUR CODE HERE
+```
+
+
+```{r}
+. = ottr::check("tests/write_cyclones.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Sea Ice Data
+
+The following data are used in the Course Notes to demonstrate reading in specific sheets. In this assignment, we care most about what's *in* the data! I've copied the code over from the notes; there are no questions on loading the data.
+
+The sea ice extent is [defined](https://arctic.noaa.gov/report-card/report-card-2023/sea-ice-2023/) as the total area of the ocean that is covered in ice of at least 15% concentration.
+
+```{r}
+sea_ice_extent_xlsx <- "https://masie_web.apps.nsidc.org/pub//DATASETS/NOAA/G02135/seaice_analysis/Sea_Ice_Index_Daily_Extent_G02135_v3.0.xlsx"
+```
+
+```{r}
+NH_daily <- sea_ice_extent_xlsx |>
+    read.xlsx(
+        sheet = "NH-Daily-Extent",
+    ) |>
+    select(X1, X2, `1978`:`2023`) |>
+    rename(
+        month = X1,
+        day = X2
+    ) |>
+    fill(month) |>
+    pivot_longer(
+        cols = `1978`:`2023`,
+        names_to = "year",
+        values_to = "ice_extent",
+        values_drop_na = TRUE,
+    ) |>
+    mutate(
+        year = as.integer(year),
+        month = ordered(
+            month,
+            levels = c("January", "February", "March", "April",
+                "May", "June", "July", "August", "September",
+                "October", "November", "December")),
+        region = "Arctic",
+    ) |>
+    arrange(
+        year, month, day
+    )
+```
+
+```{r}
+SH_daily <- sea_ice_extent_xlsx |>
+    read.xlsx(
+        sheet = "SH-Daily-Extent",
+        skipEmptyCols = TRUE,
+        fillMergedCells = TRUE,
+        cols = 1:48
+    ) |>
+    rename(
+        month = X1,
+        day = X2
+    ) |>
+    pivot_longer(
+        cols = `1978`:`2023`,
+        names_to = "year",
+        names_transform = list(year = as.integer),
+        values_to = "ice_extent",
+        values_drop_na = TRUE,
+    ) |>
+    mutate(
+        month = ordered(
+            month,
+            levels = c("January", "February", "March", "April",
+                "May", "June", "July", "August", "September",
+                "October", "November", "December")
+        ),
+        region = "Antarctic",
+    ) |>
+    arrange(
+        year, month, day
+    )
+```
+
+```{r}
+ice_extent_daily <- bind_rows(NH_daily, SH_daily) |>
+    mutate(date = make_date(year, month, day)) |>
+    arrange(region, date)
+
+ice_extent_daily
+```
+
+## Stats and Plots
+
+
+```{r}
+ice_extent_daily |>
+    ggplot() +
+        aes(x = yday(date), y = ice_extent, colour = year, group = factor(year)) +
+        geom_line() +
+        facet_wrap(~region) +
+        #coord_polar() +
+        scale_colour_distiller(
+            direction = 1, type = "seq", palette = 3
+        )
+```
+
+In the chunk below, find the maximum and minimum sea ice extent for each year (by region). Pivot the data frame so that there's a column labelled "name" and a column labelled "value", as below.
+
+| year  | region    | name | value   |
+|-------|-----------|------|---------|
+| 1978  | Antarctic | min  | 7.283   |
+| 1978  | Antarctic | max  | 17.803  |
+| 1978  | Arctic    | min  | 10.231  |
+| 1978  | Arctic    | max  | 14.585  |
+| 1979  | Antarctic | min  | 2.911   |
+| 1979  | Antarctic | max  | 18.361  |
+| ...   | ...       | ...  | ...     |
+
+```{r}
+ice_extent_yearly <- ice_extent_daily |>
+    # YOUR CODE HERE
+
+ice_extent_yearly
+```
+
+
+```{r}
+. = ottr::check("tests/ice_extent_yearly.R")
+```
+
+Given your answer, the following code should produce a plot thats easier to interpret than the one before.
+
+```{r plot_sea_ice_extent}
+ggplot(ice_extent_yearly) +
+    aes(x = year, y = value, colour = name) +
+    geom_line() +
+    facet_wrap(~ region) +
+    labs(
+        x = "Year", y = "Sea Ice Extent",
+        colour = "Stat",
+        title = "Min and Max Sea Ice Extent, by Year",
+        subtitle = "Arctic is clearly decreasing, Antarctic is possibly becoming more variable."
+    )
+```
+
+
+
+Finally, let's save the data to `ice_extent_yeary.parquet`.
+
+```{r sea_ice_parquet, error=TRUE}
+# YOUR CODE HERE
+```
+
+```{r}
+. = ottr::check("tests/sea_ice_parquet.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Opinions on climate data from Meta (from A2)
+
+These data are the same as the data we worked with on A2. The following code will load in the awareness data; you are welcome to copy it for the happening data for the purpose of this assignment (you will not be graded on this, but it may benefit you in part 2).
+
+```{r}
+climate_opinion_address <- "https://data.humdata.org/dataset/dc9f2ca4-8b62-4747-89b1-db426ce617a0/resource/6041db5f-8190-47ff-a10b-9841325de841/download/climate_change_opinion_survey_2022_aggregated.xlsx"
+
+climate_sheet_names <- climate_opinion_address |>
+    loadWorkbook() |>
+    names()
+
+aware_sheet_name <- "climate_awareness"
+
+climate_awareness <- climate_opinion_address |>
+    read.xlsx(
+        sheet = aware_sheet_name
+    ) |>
+    pivot_longer(
+        cols = !contains(aware_sheet_name),
+        names_to = "country",
+        values_to = "score"
+    ) |>
+    mutate(
+        climate_awareness = case_when(
+            climate_awareness == "I have never heard of it" ~ "aware_no",
+            climate_awareness == "I know a little about it" ~ "aware_alittle",
+            climate_awareness == "I know a moderate amount about it" ~
+                "aware_moderate",
+            climate_awareness == "I know a lot about it" ~ "aware_alot",
+            climate_awareness == "Refused" ~ "aware_refuse",
+            climate_awareness == "(Unweighted Base)" ~ "aware_base"
+        )
+    ) |>
+    rename(answer = climate_awareness) |>
+    pivot_wider(
+        names_from = answer,
+        values_from = score
+    )
+
+write_parquet(climate_awareness, "climate_awareness.parquet")
+
+climate_awareness
+```
+
+# COVID Data from Our World In Data
+
+Perhaps theres some relationship between governments' response to the pandemic and governments' response to climate change? The following data will load in some information about COVID-19 in countries around the world.
+
+```{r}
+owid_address <- "https://covid.ourworldindata.org/data/owid-covid-data.csv"
+covid_cases <- owid_address |>
+    read_csv(
+        col_types = cols(
+            .default = col_double(),
+            date = col_date(format = ""),
+            iso_code = col_character(),
+            location = col_character(),
+            continent = col_character(),
+            tests_units = col_character()
+        ),
+        progress = FALSE,
+        show_col_types = FALSE
+    )
+
+covid_cases
+```
+
+The data are collected daily, which leads to a lot of data! This is probably more than we need to compare to the other variables. 
+
+In the chunk below, aggregate the data to be total cases in 2020, by country. Your solution should only have columns `country`, `continent` and `total_cases`. (*Hint*: The `year()` function will extract the year from a date column.)
+
+```{r covid_2020, error=TRUE}
+# YOUR CODE HERE
+
+covid_2020
+```
+
+```{r}
+. = ottr::check("tests/covid_2020.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Before we move on, we'll save `covid_2020.parquet` for use in Part 2.
+
+```{r covid_2020_parquet, error=TRUE}
+# YOUR CODE HERE
+```
+
+```{r}
+. = ottr::check("tests/covid_2020_parquet.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+As a very early exploration, let's compare climate awareness to the total number of covid cases in a country *per capita* in the year 2020. 
+
+In order to calculate per capita values, we need the population size. The easiest way that I can find is with the R package [`wbstats`](https://cran.r-project.org/web/packages/wbstats/vignettes/wbstats.html), which pulls updated statistics from the World Bank.
+
+```{r}
+# DO NOT PUT install.packages() IN AN RMD
+# Run install.packages("wbstats") in your console, not in this code chunk
+library(wbstats)
+pop_data <- wb_data("SP.POP.TOTL", start_date = 2020, end_date = 2020)
+
+```
+
+A quick check to see which countries are in one data set but not the other:
+
+```{r}
+pop_countries <- pop_data |> pull(country)
+aware_countries <- climate_awareness |> pull(country)
+
+print("Countries in pop_data that aren't in climate_awareness:")
+setdiff(pop_countries, aware_countries)
+print("Countries in aware_countries that aren't in pop_data:")
+setdiff(aware_countries, pop_countries)
+```
+
+Many of these countries are actually in both, but have a different name! Before we can join these two data sets together, we need the primary key (`country`) to match where possible.
+
+- One pattern that I notice is that aware_countries has periods (`.`) instead of spaces. As a first step (to save us from manually entering 29 different country names twice), change all periods to spaces using `str_replace()`.
+    - NOTE: The `.` is a special character in regex and needs to be [escaped](https://r4ds.hadley.nz/regexps#sec-regexp-escaping)!
+
+```{r aware_fixed_country, error=TRUE}
+aware_fixed_country <- climate_awareness |>
+    mutate(
+        # Replace *all* *literal* periods with a space in the country column
+        # YOUR CODE HERE
+    )
+
+aware_fixed_country |> pull(country) |> unique()
+```
+
+```{r}
+. = ottr::check("tests/aware_fixed_country.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Now let's run the check again:
+
+```{r}
+pop_countries <- pop_data |> pull(country)
+aware_countries <- aware_fixed_country |> pull(country)
+
+print("Countries in pop_data that aren't in climate_awareness:")
+setdiff(pop_countries, aware_countries) |> sort()
+print("Countries in aware_countries that aren't in pop_data:")
+setdiff(aware_countries, pop_countries) |> sort()
+```
+
+That's slightly less that we need to deal with! Overall, the `pop_data` has more countries in it than `aware_fixed_country`, so we'll just do our best to change the countries in `aware_fixed_country` to match `pop_data`. Note that there a lot of [controversial politics](https://www.youtube.com/watch?v=3nB688xBYdY) involved in defining a "country" (esp. Taiwan, Hong Kong, West Bank and Gaza, etc.), and I'll avoid these as much as possible for now.
+
+Use a `case_when()` statement to change the countries in `aware_fixed_country` where possible. Specifically, fix the following:
+
+- "Bolivia (Plurinational State of)", "Congo (Democratic Republic of the)", "Egypt", "Hong Kong", "Lao People's Democratic Republic", "Slovakia", "North MAcedonia", "South Korea" (be careful with this one!), "Turkey", "Vietnam", "Yemen".
+```{r aware_fixed_country_match}
+aware_fixed_country_match <- aware_fixed_country |>
+    mutate(
+        # Change country using a case_when statement
+        # YOUR CODE HERE
+    )
+
+aware_countries <- aware_fixed_country_match |> pull(country)
+print("Countries in aware_countries that aren't in pop_data:")
+setdiff(aware_countries, pop_countries) |> sort()
+```
+
+
+```{r}
+. = ottr::check("tests/aware_fixed_country_match.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The remaining coutries are either broader geopolitical areas rather than countries, or Taiwan (which is apparently recognized as a country by Meta but not World Bank). For simplicity, we will simply move on without these countries/areas.
+
+Now we can join! Use a [join](https://dplyr.tidyverse.org/reference/mutate-joins.html) that only keeps countries that are in both data sets. The final data frame should have the columns `country`, `total_population`, `aware_no`, `aware_alittle`, `aware_moderate`, `aware_alot`, and `aware_refuse`.
+
+```{r aware_pop, error=TRUE}
+# YOUR CODE HERE
+
+aware_pop
+```
+
+```{r}
+. = ottr::check("tests/aware_pop.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Finally, let's make sure the country names in `covid_2020` match those in `aware_pop`. In the end, all countries in `covid_2020` should be in `aware_pop` (but `aware_pop` will have countries that are not present in `covid_2020_match_country`, which is unavoidable).
+
+```{r}
+aware_countries <- aware_pop |> pull(country) |> unique()
+covid_countries <- covid_2020 |> pull(country) |> unique()
+
+setdiff(covid_countries, aware_countries)
+setdiff(aware_countries, covid_countries)
+```
+
+```{r covid_2020_match_country, error=TRUE}
+# YOUR CODE HERE
+
+covid_2020_match_country
+```
+
+```{r}
+. = ottr::check("tests/covid_2020_match_country.R")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Okay, now take a quick breather. Grab a tea, go for a walk, rock out to some music, whatever self care you want. That was a lot of finicky stuff, but now we've got a data set that we can use!
+
+Join `aware_pop` and `covid_2020_match_country`, again only keep countries that are in both. Create a new column called `covid_per_capita` based on the total cases dividedby total population.
+
+```{r aware_covid, error=TRUE}
+# YOUR CODE HERE
+
+aware_covid
+```
+
+```{r}
+. = ottr::check("tests/aware_covid.R")
+```
+
+With all that done, I'll do the last few steps to make an interesting plot. Fortunately, the `covid_data` came with the classification of countries into continents, so we can add plenty of info to this plot!
+
+```{r}
+aware_covid |>
+    pivot_longer(
+        cols = starts_with("aware_"),
+        names_prefix = "aware_",
+        names_to = "awareness",
+        values_to = "value"
+    ) |>
+    mutate(
+        awareness = ordered(awareness,
+            levels = c("refuse", "no", "alittle", "moderate", "alot")
+        )
+    ) |>
+    ggplot() +
+    aes(x = value, y = cases_per_capita, colour = continent) +
+    geom_point() +
+    geom_smooth(se = FALSE, method = "lm", formula = y ~ x) +
+    facet_wrap(~ awareness, scales = "free") +
+    labs(
+        x = "Proportion of respondents who selected the awareness statement, by country",
+        y = "Total COVID-19 cases per capita in 2020",
+        title = "COVID-19 Cases versus Awareness of Climate Change Definitions",
+        subtitle = "Facets represent responses to a question about climate change awareness.",
+        colour = "Continent"
+    )
+```
+
+Some interesting patterns:
+
+- It looks like the "refused" group are pretty similar to the "no" group. It seems safe to say that the people who refuse to answer specific questions on a climate survey are not aware of the actual definitions being used.
+- For the Americas, it looks like being more aware of climate change is associated with an *increase* in COVID-19 cases.
+- For other continents, there doesn't appear to be any strong patterns.
+
+There are several explanations for these patterns, such as awareness being linked to education and/or travel volume in first-world/developed countries, or perhaps it's just a consequence of how we define a "continent" (could you list the 18 countries in North America?). Most likely some of the results are due to the differences in the way countries track and report cases of COIVD-19.
+
+
+
+
+
+
+
+
+# World Happiness Report Score (from 2023 report)
+
+Finally, we have data from the [World Happiness Report](https://worldhappiness.report), downloaded from [here](https://worldhappiness.report/ed/2023/#appendices-and-data) and distributed with this assignment. The "Statistical Appendix" includes the description of each column, especially what the question was. 
+
+For the most part, the "life_ladder" column is the most important - this is the WHR's main question that gets at how "happy" the people of a country are. You may choose to explore other options though - perhaps people's perceptions of corruption affect their response to climate issues?
+
+To make the data more convenient for Part 2, perform the following operations. The first ones are easy, the last one is tricky!
+
+- Use `janitor` to clean the names. 
+- Rename `country_name` to `country`.
+- Remove any rows for which `life_ladder` is `NA`.
+- The data contain information from multiple years, and these years are not consistent for each country. For Part 2, these data will mainly be used to compare countries (we don't need the happiness over time). Filter the data so that we only have the *most recent* observation of the relevant values. (In my solution, I use the `slice()` function as part of a very short pipeline.)
+
+
+```{r happiness}
+happiness <- read.xlsx("DataForTable2.1.xlsx") |>
+    # YOUR CODE HERE
+
+happiness
+```
+```{r}
+. = ottr::check("tests/happiness.R")
+```
+
+And, finally, save the file:
+
+```{r}
+write_parquet(happiness, "happiness.parquet")
+```
+
+
+```{r active="", eval=FALSE}
+# END ASSIGNMENT 
+```
