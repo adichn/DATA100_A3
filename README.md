@@ -1,6 +1,6 @@
 - [x] Overview 
 - [ ] NOAA data for Atlantic and Pacific Basin
-  - [ ] Load in the Data
+  - [x] Load in the Data
   - [ ] Combine into One Data Frame
   - [ ] Fix Latitude and Longitude
   - [ ] Extract Dates
