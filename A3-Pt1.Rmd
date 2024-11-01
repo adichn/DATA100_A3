@@ -1,6 +1,6 @@
 ---
 title: "Exploring Disparate Data: Part 1"
-author: "Put your group number from MyLS here: "
+author: "Put your group number from MyLS here: 8"
 date: "Due November 12th"
 ---
 
