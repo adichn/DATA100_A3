@@ -263,6 +263,14 @@ cyclones_data <- cyclones_data_update_2 |>
         category = ordered(
             case_when(
                 # YOUR CODE HERE
+                max_wind < 34 ~ "TD",
+                max_wind >= 34 & max_wind < 64 ~ "TS",
+                max_wind >= 64 & max_wind < 83 ~ "1",
+                max_wind >= 83 & max_wind < 96 ~ "2",
+                max_wind >= 96 & max_wind < 113 ~ "3",
+                max_wind >= 113 & max_wind < 137 ~ "4",
+                max_wind >= 137 ~ "5"
+
             ),
             levels = cat_levels
         )
@@ -283,6 +291,7 @@ Now that we have a suitable data frame, save it as a parquet file with the file 
 
 ```{r}
 # YOUR CODE HERE
+write_parquet(cyclones_data, "cyclones_data.parquet")
 ```
 
 ```{r}
