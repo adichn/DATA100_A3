@@ -4,7 +4,7 @@
   - [x] Combine into One Data Frame
   - [ ] Fix Latitude and Longitude
   - [ ] Extract Dates
-  - [ ] Assign Storm Categories
+  - [X] Assign Storm Categories
   - [ ] Plots and Summary Statistics!
   - [ ] Clean Up
 - [ ] Sea Ice Data
