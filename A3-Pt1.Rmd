@@ -190,7 +190,7 @@ Name the data frame `cyclones_data_update_0`.
 
 ```{r error=TRUE}
 # YOUR CODE HERE
-
+cyclones_data_update_0 <- bind_rows(at_cyclone, np_cyclone)
 print(cyclones_data_update_0)
 ```
 
