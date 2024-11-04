@@ -146,6 +146,46 @@ The first aspect that we found interesting is shown in \@ref(fig:insight1). The 
 # an R chunk. Note that you can reference figures using:
 # \@ref(fig:insight1), where "insight1" is the label of this code
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
+
+storm_summary <- cyclones_data |>
+    group_by(ObservYear) |>
+    summarize(
+        total_storms = n(),
+        max_wind_speed = max(max_wind, na.rm = TRUE)
+    ) |>
+    rename(year = ObservYear)
+
+print(storm_summary)
+
+storm_ice_comparison <- inner_join(storm_summary, ice_extent_yearly, by = "year")
+
+
+print(storm_ice_comparison)
+
+ggplot(storm_ice_comparison, aes(x = total_storms, y = value, color = region)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE) +
+    facet_wrap(~name) +
+    labs(
+        title = "Storm Frequency vs. Sea Ice Extent",
+        x = "Total Number of Storms",
+        y = "Sea Ice Extent (Million sq. km)",
+        color = "Region"
+    )
+
+ggplot(storm_ice_comparison, aes(x = max_wind_speed, y = value, color = region)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE) +
+    facet_wrap(~name) +
+    labs(
+        title = "Maximum Storm Intensity vs. Sea Ice Extent",
+        x = "Maximum Wind Speed (knots)",
+        y = "Sea Ice Extent (Million sq. km)",
+        color = "Region"
+    )
+
+
+
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
