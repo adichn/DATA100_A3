@@ -23,7 +23,7 @@ List all group members here:
 
 -   Aditya (169027493)
 -   Andy
--   Dibu
+-   Dibu (169708451)
 -   Oscar
 -   Taras
 
@@ -514,7 +514,13 @@ The data are collected daily, which leads to a lot of data! This is probably mor
 In the chunk below, aggregate the data to be total cases in 2020, by country. Your solution should only have columns `country`, `continent` and `total_cases`. (*Hint*: The `year()` function will extract the year from a date column.)
 
 ```{r covid_2020, error=TRUE}
-# YOUR CODE HERE
+covid_2020 <- covid_cases |>
+  filter(year(date) == 2020) |>
+  group_by(location, continent) |>
+  summarise(
+    total_cases = sum(total_cases)
+  ) |>
+  rename(country = location)
 
 covid_2020
 ```
@@ -526,7 +532,7 @@ covid_2020
 Before we move on, we'll save `covid_2020.parquet` for use in Part 2.
 
 ```{r covid_2020_parquet, error=TRUE}
-# YOUR CODE HERE
+write_parquet(covid_2020, "covid_2020.parquet")
 ```
 
 ```{r}
@@ -566,7 +572,7 @@ Many of these countries are actually in both, but have a different name! Before 
 aware_fixed_country <- climate_awareness |>
     mutate(
         # Replace *all* *literal* periods with a space in the country column
-        # YOUR CODE HERE
+        country = str_replace_all(country, "\\.", " ")
     )
 
 aware_fixed_country |> pull(country) |> unique()
@@ -597,10 +603,23 @@ Use a `case_when()` statement to change the countries in `aware_fixed_country` w
 ```{r aware_fixed_country_match}
 aware_fixed_country_match <- aware_fixed_country |>
     mutate(
-        # Change country using a case_when statement
-        # YOUR CODE HERE
+      # Change country using a case_when statement
+      country = case_when(
+        country == "Bolivia (Plurinational State of)" ~ "Bolivia",
+        country == "Congo (Democratic Republic of the)" ~ "Congo, Rep.",
+        country == "Egypt" ~ "Egypt, Arab Rep.",
+        country == "Hong Kong" ~ "Hong Kong SAR, China",
+        country == "Lao People's Democratic Republic" ~ "Lao PDR",
+        country == "Slovakia" ~ "Slovak Republic",
+        country == "North MAcedonia" ~ "North Macedonia",
+        country == "South Korea" ~ "Korea, Rep.",
+        country == "Turkey" ~ "Turkiye",
+        country == "Vietnam" ~ "Viet Nam",
+        country == "Yemen" ~ "Yemen, Rep.",
+        TRUE ~ country
+      )
     )
-
+  
 aware_countries <- aware_fixed_country_match |> pull(country)
 print("Countries in aware_countries that aren't in pop_data:")
 setdiff(aware_countries, pop_countries) |> sort()
@@ -615,7 +634,14 @@ The remaining coutries are either broader geopolitical areas rather than countri
 Now we can join! Use a [join](https://dplyr.tidyverse.org/reference/mutate-joins.html) that only keeps countries that are in both data sets. The final data frame should have the columns `country`, `total_population`, `aware_no`, `aware_alittle`, `aware_moderate`, `aware_alot`, and `aware_refuse`.
 
 ```{r aware_pop, error=TRUE}
-# YOUR CODE HERE
+
+aware_pop <- full_join(
+  aware_fixed_country,
+  pop_data,
+  by = "country"
+) |> full_join(population) |>
+  group_by(country, aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse) |>
+  summarise(total_population = sum(population))
 
 aware_pop
 ```
@@ -635,7 +661,7 @@ setdiff(aware_countries, covid_countries)
 ```
 
 ```{r covid_2020_match_country, error=TRUE}
-# YOUR CODE HERE
+covid_2020_match_country <- left_join(aware_pop, covid_2020, by = "country")
 
 covid_2020_match_country
 ```
