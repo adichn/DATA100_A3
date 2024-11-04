@@ -1,6 +1,6 @@
 ---
 title: "Exploring Disparate Data: Part 1"
-author: "Put your group number from MyLS here: "
+author: "Put your group number from MyLS here: 8"
 date: "Due November 12th"
 ---
 
@@ -208,7 +208,9 @@ There are many ways to solve this. My solution is one line and uses `parse_numbe
 
 ```{r convert_latlon, error=TRUE}
 convert_latlon <- function(latlon) {
-    # YOUR CODE HERE
+  
+  parsed_num <- parse_number(latlon)
+    if_else(str_detect(latlon, "[SW]"), -parsed_num, parsed_num)
 }
 
 test_data <- c("49W", "49.99W", "49E", "49.99E", "49N", "49.99S", "-0.0W")
@@ -239,7 +241,7 @@ To do this, you must choose whether to use `ObservYear` or `NameYear`.
 ```{r cyclones_data_update_2, error=TRUE}
 cyclones_data_update_2 <- cyclones_data_update_1 |>
     mutate(
-        # YOUR CODE HERE
+        date = make_datetime(ObservYear, Month, Day, Hour * 100 + Minute)
     )
 
 print(cyclones_data_update_2)
@@ -409,7 +411,17 @@ In the chunk below, find the maximum and minimum sea ice extent for each year (b
 ```{r}
 ice_extent_yearly <- ice_extent_daily |>
     # YOUR CODE HERE
-
+    group_by(year, region) |>
+    summarize(
+        min = min(ice_extent, na.rm = TRUE),
+        max = max(ice_extent, na.rm = TRUE),
+        .groups = "drop"
+    ) |>
+    pivot_longer(
+        cols = c("min", "max"),
+        names_to = "name",
+        values_to = "value"
+    )
 ice_extent_yearly
 ```
 
@@ -436,6 +448,7 @@ Finally, let's save the data to `ice_extent_yeary.parquet`.
 
 ```{r sea_ice_parquet, error=TRUE}
 # YOUR CODE HERE
+write_parquet(ice_extent_yearly, "ice_extent_yearly.parquet")
 ```
 
 ```{r}
