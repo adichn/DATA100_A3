@@ -65,20 +65,10 @@ By the end of this report, we will have shown ...
 ## \<\<Data Set 1\>\>
 
 ```{r load_data1}
-#ice_extent
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 cyclones_data <- read_parquet("cyclones_data.parquet")
-
-# Convert latitude(-90/+90) and longitude(-180/+180) to be within the correct range
-cyclones_data <- cyclones_data |>
-    mutate(
-        lat = ((lat + 90) %% 180) - 90,  
-        lon = ((lon + 180) %% 360) - 180 
-    )
-
 cyclones_data
-
 # Note that the code in this document will not be shown
 # when you click "knit", so the placement of this code
 # chunk is purely for your benefit: You can see what happened
@@ -152,42 +142,6 @@ The first aspect that we found interesting is shown in \@ref(fig:insight1). The 
 # an R chunk. Note that you can reference figures using:
 # \@ref(fig:insight1), where "insight1" is the label of this code
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
-
-
-# possible correlations
-# gdp and climate awareness
-# covid cases and life ladder
-
-
-
-
-
-library(ggplot2)
-library(maps)
-
-library(ggplot2)
-library(maps)
-
-# Load map data for world map
-world_map <- map_data("world")
-
-# Plot using hex bins and color based on storm type
-ggplot() +
-    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
-    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = category), bins = 50, alpha = 0.7) +
-    scale_fill_viridis_d(name = "Storm Category") +
-    labs(
-        title = "North Atlantic and Northeast Pacific Cyclones by Category",
-        x = "Longitude",
-        y = "Latitude"
-    ) +
-    coord_fixed(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
-    theme_minimal() 
-
-
-
-
-
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)

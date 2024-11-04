@@ -21,11 +21,11 @@ library(openxlsx)
 
 List all group members here:
 
--   Aditya (169027493)
 -   Andy (169081356)
--   Dibu
+-   Dibu (169708451)
 -   Oscar (169057882)
 -   Taras (169099616)
+
 
 This file will be submitted as an Rmd file to GradeScope. You will need to create a group on GradeScope with the correct members. *If the person who submits this does not list you, you will not get a grade on this assignment!!!* Make sure you trust the person who is submitting it!
 
@@ -189,7 +189,6 @@ Now, bind the two data frames together (row-wise). Since the `Basin` column alre
 Name the data frame `cyclones_data_update_0`.
 
 ```{r error=TRUE}
-# YOUR CODE HERE
 cyclones_data_update_0 <- bind_rows(at_cyclone, np_cyclone)
 print(cyclones_data_update_0)
 ```
@@ -264,7 +263,6 @@ cyclones_data <- cyclones_data_update_2 |>
     mutate(
         category = ordered(
             case_when(
-                # YOUR CODE HERE
                 max_wind < 34 ~ "TD",
                 max_wind >= 34 & max_wind < 64 ~ "TS",
                 max_wind >= 64 & max_wind < 83 ~ "1",
@@ -292,7 +290,6 @@ print(cyclones_data)
 Now that we have a suitable data frame, save it as a parquet file with the file name `"cyclones_data.parquet"`.
 
 ```{r}
-# YOUR CODE HERE
 write_parquet(cyclones_data, "cyclones_data.parquet")
 ```
 
@@ -410,7 +407,6 @@ In the chunk below, find the maximum and minimum sea ice extent for each year (b
 
 ```{r}
 ice_extent_yearly <- ice_extent_daily |>
-    # YOUR CODE HERE
     group_by(year, region) |>
     summarize(
         min = min(ice_extent, na.rm = TRUE),
@@ -447,7 +443,6 @@ ggplot(ice_extent_yearly) +
 Finally, let's save the data to `ice_extent_yeary.parquet`.
 
 ```{r sea_ice_parquet, error=TRUE}
-# YOUR CODE HERE
 write_parquet(ice_extent_yearly, "ice_extent_yearly.parquet")
 ```
 
@@ -528,10 +523,11 @@ In the chunk below, aggregate the data to be total cases in 2020, by country. Yo
 
 ```{r covid_2020, error=TRUE}
 covid_2020 <- covid_cases |>
- 
-  filter(year(date) == 2020) |>    
-  group_by(location) |>  
-  select(location, continent, total_cases)|>
+  filter(year(date) == 2020) |>
+  group_by(location, continent) |>
+  summarise(
+    total_cases = sum(total_cases)
+  ) |>
   rename(country = location)
 
 covid_2020
@@ -584,7 +580,7 @@ Many of these countries are actually in both, but have a different name! Before 
 aware_fixed_country <- climate_awareness |>
     mutate(
         # Replace *all* *literal* periods with a space in the country column
-        # YOUR CODE HERE
+        country = str_replace_all(country, "\\.", " ")
     )
 
 aware_fixed_country |> pull(country) |> unique()
@@ -615,10 +611,23 @@ Use a `case_when()` statement to change the countries in `aware_fixed_country` w
 ```{r aware_fixed_country_match}
 aware_fixed_country_match <- aware_fixed_country |>
     mutate(
-        # Change country using a case_when statement
-        # YOUR CODE HERE
+      # Change country using a case_when statement
+      country = case_when(
+        country == "Bolivia (Plurinational State of)" ~ "Bolivia",
+        country == "Congo (Democratic Republic of the)" ~ "Congo, Rep.",
+        country == "Egypt" ~ "Egypt, Arab Rep.",
+        country == "Hong Kong" ~ "Hong Kong SAR, China",
+        country == "Lao People's Democratic Republic" ~ "Lao PDR",
+        country == "Slovakia" ~ "Slovak Republic",
+        country == "North MAcedonia" ~ "North Macedonia",
+        country == "South Korea" ~ "Korea, Rep.",
+        country == "Turkey" ~ "Turkiye",
+        country == "Vietnam" ~ "Viet Nam",
+        country == "Yemen" ~ "Yemen, Rep.",
+        TRUE ~ country
+      )
     )
-
+  
 aware_countries <- aware_fixed_country_match |> pull(country)
 print("Countries in aware_countries that aren't in pop_data:")
 setdiff(aware_countries, pop_countries) |> sort()
@@ -633,7 +642,14 @@ The remaining coutries are either broader geopolitical areas rather than countri
 Now we can join! Use a [join](https://dplyr.tidyverse.org/reference/mutate-joins.html) that only keeps countries that are in both data sets. The final data frame should have the columns `country`, `total_population`, `aware_no`, `aware_alittle`, `aware_moderate`, `aware_alot`, and `aware_refuse`.
 
 ```{r aware_pop, error=TRUE}
-# YOUR CODE HERE
+
+aware_pop <- inner_join(
+  aware_fixed_country_match,
+  pop_data,
+  by = "country"
+) |> summarise(country, "total_population" = SP.POP.TOTL, aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse)
+
+
 
 aware_pop
 ```
@@ -653,7 +669,7 @@ setdiff(aware_countries, covid_countries)
 ```
 
 ```{r covid_2020_match_country, error=TRUE}
-# YOUR CODE HERE
+covid_2020_match_country <- left_join(aware_pop, covid_2020, by = "country")
 
 covid_2020_match_country
 ```
@@ -667,7 +683,11 @@ Okay, now take a quick breather. Grab a tea, go for a walk, rock out to some mus
 Join `aware_pop` and `covid_2020_match_country`, again only keep countries that are in both. Create a new column called `covid_per_capita` based on the total cases dividedby total population.
 
 ```{r aware_covid, error=TRUE}
-# YOUR CODE HERE
+aware_covid <- inner_join(aware_pop, covid_2020_match_country) |>
+  group_by(country) |>
+  mutate(
+    "cases_per_capita" = total_cases / total_population
+  )
 
 aware_covid
 ```
@@ -736,7 +756,6 @@ happiness <- read.xlsx("DataForTable2.1.xlsx") |>
 group_by(country) |>                 
   arrange(country, desc(year)) |>      
   slice(1) 
-    
 
 happiness
 ```
