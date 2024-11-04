@@ -21,18 +21,11 @@ library(openxlsx)
 
 List all group members here:
 
--   Aditya (169027493)
-<<<<<<< HEAD
--   Andy
--   Dibu (169708451)
--   Oscar
--   Taras
-=======
 -   Andy (169081356)
--   Dibu
+-   Dibu (169708451)
 -   Oscar (169057882)
 -   Taras (169099616)
->>>>>>> cd70d0a8e9c8229d6d998926c24a40b37cb82a52
+
 
 This file will be submitted as an Rmd file to GradeScope. You will need to create a group on GradeScope with the correct members. *If the person who submits this does not list you, you will not get a grade on this assignment!!!* Make sure you trust the person who is submitting it!
 
