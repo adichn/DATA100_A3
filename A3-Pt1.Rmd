@@ -241,7 +241,7 @@ To do this, you must choose whether to use `ObservYear` or `NameYear`.
 ```{r cyclones_data_update_2, error=TRUE}
 cyclones_data_update_2 <- cyclones_data_update_1 |>
     mutate(
-        date = make_datetime(ObservYear, Month, Day, Hour * 100 + Minute)
+        date = make_datetime(year = ObservYear,month = Month, day = Day, hour = Hour, min = Minute)
     )
 
 print(cyclones_data_update_2)
