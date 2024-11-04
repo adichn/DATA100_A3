@@ -67,7 +67,6 @@ By the end of this report, we will have shown ...
 ```{r load_data1}
 #ice_extent
 
-ice_extent <- read_csv("ice_extent_yearly.parquet")
 
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
@@ -90,8 +89,17 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # necessary cleaning beyond what was done in Part 1
 ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
 ice_extent_yearly
-# Reminder: do NOT print your data to the screen unless it's
-# completely necessary
+
+library(ggplot2)
+
+# Assuming 'name' indicates 'min' or 'max' and 'value' contains the ice extent measurements
+ggplot(data=ice_extent_yearly, aes(x = year, color = name, linetype = region)) +
+  geom_line(aes(y = value), size = 1) +
+  labs(title = "Yearly Ice Extent Trends in Antarctic and Arctic",
+       x = "Year",
+       y = "Ice Extent") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
 
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
