@@ -66,6 +66,10 @@ By the end of this report, we will have shown ...
 ## <<Data Set 1>>
 
 ```{r load_data1}
+#ice_extent
+
+ice_extent <- read_csv("ice_extent_yearly.parquet")
+
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 
