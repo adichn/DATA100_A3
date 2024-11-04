@@ -1,0 +1,171 @@
+---
+title: "TITLE OF YOUR PROJECT"
+author: "PUT YOUR MYLS GROUP NUMBER HERE, THEN LIST GROUP MEMBERS BELOW"
+date: "November 12th, 2024"
+output: pdf_document
+---
+
+List your group members, including their student numbers, here:
+
+- John K. Samson (#########)
+- John Darnielle (#########)
+- Craig Finn (#########)
+- Joel Plaskett (########)
+- Ezra Furman (#########)
+
+You **must** be in a group in MyLS in order to see the DropBox used for submission. Even if you're alone, you must join a group by yourself.
+
+You **must** be in a group with people from the same section as you. MyLS does not allow for groups including students from both Data100A and Data100B.
+
+```{r setup, include=FALSE}
+# echo = FALSE will set the Rmd to *not* show the R code. Don't change this.
+# You may change the default figure width and figure height as you please.
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, fig.width = 6)
+
+# Put any libraries that you need to load here.
+# DO NOT PUT "install.packages()" IN AN RMD FILE!!!
+library(tidyverse)
+library(arrow)
+```
+
+
+# Instructions
+
+You are encouraged to remove this instruction section prior to submission.
+
+It is recommended that you follow the structure of this template. The text is all placeholder - you are free to change any/all wording as you please, but it is very helpful for the grading process if you keep the same structure. Anything in <<double angle brackets>> definitely needs to be changed, but you are free to change any/all sentences!
+
+Note that all of the code is *hidden* by default. This file will be graded based on the insights, not the code.
+
+You will only submit the PDF version of this document. To knit to PDF, you'll need to run `install.packages("tinytex")` in the console, followed by `tinytex::install_tinytex()` (DO NOT PUT THESE COMMANDS IN AN RMD FILE!!!). If you encounter errors in "Knit to PDF", you can "knit to html" and then print the html file to PDF using your operating system's PDF view (e.g. Adobe Acrobat). Only standalone PDF files will be accepted by MyLS.
+
+# Abstract
+
+General context, very brief data descriptions, techniques used, and general conclusions, all contained within a single, concise paragraph.
+
+# Introduction
+
+Climate change is something that has been studied. Here's some relevant information about the context of our study.
+
+If needed, this paragraph is more information about the context.
+
+In this report, we are going to explore some aspects climate change and the impact and/or perceptions of it by using exploratory techniques. We'll explore <<general description of data>> using <<general description of techniques>>.
+
+By the end of this report, we will have shown ...
+
+
+
+
+
+
+
+
+
+# Data Description
+
+## <<Data Set 1>>
+
+```{r load_data1}
+# Put in your code to load in the data set, along with any
+# necessary cleaning beyond what was done in Part 1
+
+# Note that the code in this document will not be shown
+# when you click "knit", so the placement of this code
+# chunk is purely for your benefit: You can see what happened
+# with your data, which makes it easier to describe below!
+```
+
+The data come from <<place>> and describe <<more specific description of the data>>.
+
+In order to clean the data, we <<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code>>.
+
+## <<Data Set 2>>
+
+```{r load_data2}
+# Put in your code to load in the data set, along with any
+# necessary cleaning beyond what was done in Part 1
+
+# Reminder: do NOT print your data to the screen unless it's
+# completely necessary
+```
+
+The data come from <<place>> and detail <<more specific description of the data>>.
+
+In order to clean the data, we <<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code>>
+
+## <<Data Set 3>>
+
+```{r load_data2}
+# Put in your code to load in the data set, along with any
+# necessary cleaning beyond what was done in Part 1
+```
+
+The data come from <<place>> and detail <<more specific description of the data>>.
+
+In order to clean the data, we <<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code>>
+
+## Combining the Data
+
+Explain how any combinations of data were performed. Explain what kind of join was needed, whether columns had to be modified (for example, matching "country" names.)
+
+
+
+
+
+# Exploratory Data Analysis
+
+To achieve our goals, we explored the data by...
+
+We explored many aspects of the data, but will demonstrate three. These are <<insight 1>>, <<insight 2>>, and <<insight3>>
+
+The first aspect that we found interesting is shown in \@ref(fig:insight1). The insight should be specific to the data shown, not a general statement beyond the data (leave that for the conclusion).
+
+```{r insight1, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+# This is an example of how you can control figures and captions in
+# an R chunk. Note that you can reference figures using:
+# \@ref(fig:insight1), where "insight1" is the label of this code
+# chunk (the first bit of text after the "r" in "```{r label, options...}")
+```
+
+This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
+
+```{r summary_stats}
+# Calculate the relevant summary statistics here.
+# Note that the "kable" function in the "knitr" package
+# is convenient for making nice tables. Other packages can
+# do much fancier things with tables, but keep in mind that
+# the insights should be the star, not the formatting.
+```
+
+The next insight that we found is shown in \@ref(fig:insight2).
+
+```{r insight2, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+# This figure will have a height of 4 and a width of 6.
+# Feel free to change this, and to apply different sizes
+# to the other figures you create.
+```
+
+Finally, \@ref(fig:insight3) shows ...
+
+```{r insight3, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+```
+
+# Conclusion and Future Work
+
+Overall, we found <<general ideas>>.
+
+A second paragraph about our findings.
+
+The next steps in this analysis are...
+
+The limitations of this analysis are as follows. (Do not simply list potential issues with sampling, but relate them to your analysis and how they affect your conclusions. An honest and complete acknowledgement of the limitations makes the analysis more trustworthy.)
+
+# References
+
+I am not strict about MLA or APA style or anything like that. For this report, I would much rather have your citations be easy to match to your insights.
+
+The easiest way is to use Rmd's [footnote](https://bookdown.org/yihui/rmarkdown/markdown-syntax.html#inline-formatting) syntax. This will put a number beside the word where the footnote appears, and the full text of the footnote at the bottom of the page (pdf) or end of the document (html). The syntax is:^[See the source view to see this footnote], where I suggest that you put in something like this^[The relevance to the insight is ... . From <<name of source and name of article>>, published on <<date>>, url: <<link to page>>] to make references for this assignment.
+
+Alternatively, you could make a list of citations with their main arguments and why they're relevent to your insights, methods, etc.
+
+The link above also references "bibtex" files. These are also extremely convenient, but have a steep learning curve and they make it difficult to tie them to an insight. If you use bibtext, then make sure that you provide a sentence to describe the source and it's relevance when you cite it - don't just add citations to the end of a sentence (this is common practice in academia, but I want to know that your citations are directly relevant for this assignmnet).
