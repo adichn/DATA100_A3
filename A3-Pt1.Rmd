@@ -208,7 +208,9 @@ There are many ways to solve this. My solution is one line and uses `parse_numbe
 
 ```{r convert_latlon, error=TRUE}
 convert_latlon <- function(latlon) {
-    # YOUR CODE HERE
+  
+  parsed_num <- parse_number(latlon)
+    if_else(str_detect(latlon, "[SW]"), -parsed_num, parsed_num)
 }
 
 test_data <- c("49W", "49.99W", "49E", "49.99E", "49N", "49.99S", "-0.0W")
