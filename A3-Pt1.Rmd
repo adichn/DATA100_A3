@@ -648,13 +648,13 @@ Now we can join! Use a [join](https://dplyr.tidyverse.org/reference/mutate-joins
 
 ```{r aware_pop, error=TRUE}
 
-aware_pop <- full_join(
-  aware_fixed_country,
+aware_pop <- inner_join(
+  aware_fixed_country_match,
   pop_data,
   by = "country"
-) |> full_join(population) |>
-  group_by(country, aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse) |>
-  summarise(total_population = sum(population))
+) |> summarise(country, "total_population" = SP.POP.TOTL, aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse)
+
+
 
 aware_pop
 ```
@@ -688,7 +688,11 @@ Okay, now take a quick breather. Grab a tea, go for a walk, rock out to some mus
 Join `aware_pop` and `covid_2020_match_country`, again only keep countries that are in both. Create a new column called `covid_per_capita` based on the total cases dividedby total population.
 
 ```{r aware_covid, error=TRUE}
-# YOUR CODE HERE
+aware_covid <- inner_join(aware_pop, covid_2020_match_country) |>
+  group_by(country) |>
+  mutate(
+    "cases_per_capita" = total_cases / total_population
+  )
 
 aware_covid
 ```
@@ -749,7 +753,19 @@ To make the data more convenient for Part 2, perform the following operations. T
 
 ```{r happiness}
 happiness <- read.xlsx("DataForTable2.1.xlsx") |>
-    # YOUR CODE HERE
+  clean_names() |>
+  rename(
+    "country" = country_name
+  ) |>
+  filter(
+    !is.na(life_ladder)
+  ) |>
+  group_by(
+    country
+  ) |>
+  slice_max(
+    order_by = year
+  )
 
 happiness
 ```
