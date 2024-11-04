@@ -723,7 +723,15 @@ To make the data more convenient for Part 2, perform the following operations. T
 
 ```{r happiness}
 happiness <- read.xlsx("DataForTable2.1.xlsx") |>
-    # YOUR CODE HERE
+  janitor :: clean_names() |> 
+  rename(
+    country = country_name
+  ) |>
+  filter(!(is.na(life_ladder)))|>
+group_by(country) |>                 
+  arrange(country, desc(year)) |>      
+  slice(1) 
+    
 
 happiness
 ```
