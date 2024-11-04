@@ -1,17 +1,25 @@
 ---
 title: "TITLE OF YOUR PROJECT"
-author: "PUT YOUR MYLS GROUP NUMBER HERE, THEN LIST GROUP MEMBERS BELOW"
+author: "Group 8"
 date: "November 12th, 2024"
 output: pdf_document
 ---
 
 List your group members, including their student numbers, here:
 
+<<<<<<< HEAD
 -   John K. Samson (\#########)
 -   John Darnielle (\#########)
 -   Craig Finn (\#########)
 -   Joel Plaskett (\########)
 -   Ezra Furman (\#########)
+=======
+- Aditya Chauhan (169027493)
+- John Darnielle (#########)
+- Craig Finn (#########)
+- Joel Plaskett (########)
+- Ezra Furman (#########)
+>>>>>>> 5f7fee6584554860c6964f24cabaeb60755a72fe
 
 You **must** be in a group in MyLS in order to see the DropBox used for submission. Even if you're alone, you must join a group by yourself.
 
