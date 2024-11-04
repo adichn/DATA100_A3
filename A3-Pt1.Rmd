@@ -24,7 +24,7 @@ List all group members here:
 -   Aditya (169027493)
 -   Andy (169081356)
 -   Dibu
--   Oscar
+-   Oscar (169057882)
 -   Taras
 
 This file will be submitted as an Rmd file to GradeScope. You will need to create a group on GradeScope with the correct members. *If the person who submits this does not list you, you will not get a grade on this assignment!!!* Make sure you trust the person who is submitting it!
@@ -723,7 +723,15 @@ To make the data more convenient for Part 2, perform the following operations. T
 
 ```{r happiness}
 happiness <- read.xlsx("DataForTable2.1.xlsx") |>
-    # YOUR CODE HERE
+  janitor :: clean_names() |> 
+  rename(
+    country = country_name
+  ) |>
+  filter(!(is.na(life_ladder)))|>
+group_by(country) |>                 
+  arrange(country, desc(year)) |>      
+  slice(1) 
+    
 
 happiness
 ```
