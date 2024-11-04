@@ -1,13 +1,13 @@
 ---
 title: "TITLE OF YOUR PROJECT"
-author: "PUT YOUR MYLS GROUP NUMBER HERE, THEN LIST GROUP MEMBERS BELOW"
+author: "Group 8"
 date: "November 12th, 2024"
 output: pdf_document
 ---
 
 List your group members, including their student numbers, here:
 
-- John K. Samson (#########)
+- Aditya Chauhan (169027493)
 - John Darnielle (#########)
 - Craig Finn (#########)
 - Joel Plaskett (########)
