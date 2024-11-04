@@ -446,6 +446,7 @@ Finally, let's save the data to `ice_extent_yeary.parquet`.
 
 ```{r sea_ice_parquet, error=TRUE}
 # YOUR CODE HERE
+write_parquet(ice_extent_yearly, "ice_extent_yearly.parquet")
 ```
 
 ```{r}
