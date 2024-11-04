@@ -7,11 +7,11 @@ output: pdf_document
 
 List your group members, including their student numbers, here:
 
-- John K. Samson (#########)
-- John Darnielle (#########)
-- Craig Finn (#########)
-- Joel Plaskett (########)
-- Ezra Furman (#########)
+-   John K. Samson (\#########)
+-   John Darnielle (\#########)
+-   Craig Finn (\#########)
+-   Joel Plaskett (\########)
+-   Ezra Furman (\#########)
 
 You **must** be in a group in MyLS in order to see the DropBox used for submission. Even if you're alone, you must join a group by yourself.
 
@@ -28,12 +28,11 @@ library(tidyverse)
 library(arrow)
 ```
 
-
 # Instructions
 
 You are encouraged to remove this instruction section prior to submission.
 
-It is recommended that you follow the structure of this template. The text is all placeholder - you are free to change any/all wording as you please, but it is very helpful for the grading process if you keep the same structure. Anything in <<double angle brackets>> definitely needs to be changed, but you are free to change any/all sentences!
+It is recommended that you follow the structure of this template. The text is all placeholder - you are free to change any/all wording as you please, but it is very helpful for the grading process if you keep the same structure. Anything in \<<double angle brackets>\> definitely needs to be changed, but you are free to change any/all sentences!
 
 Note that all of the code is *hidden* by default. This file will be graded based on the insights, not the code.
 
@@ -49,74 +48,66 @@ Climate change is something that has been studied. Here's some relevant informat
 
 If needed, this paragraph is more information about the context.
 
-In this report, we are going to explore some aspects climate change and the impact and/or perceptions of it by using exploratory techniques. We'll explore <<general description of data>> using <<general description of techniques>>.
+In this report, we are going to explore some aspects climate change and the impact and/or perceptions of it by using exploratory techniques. We'll explore \<<general description of data>\> using \<<general description of techniques>\>.
 
 By the end of this report, we will have shown ...
 
-
-
-
-
-
-
-
-
 # Data Description
 
-## <<Data Set 1>>
+## \<\<Data Set 1\>\>
 
 ```{r load_data1}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
-
+cyclones_data <- read_parquet("cyclones_data.parquet")
+cyclones_data
 # Note that the code in this document will not be shown
 # when you click "knit", so the placement of this code
 # chunk is purely for your benefit: You can see what happened
 # with your data, which makes it easier to describe below!
 ```
 
-The data come from <<place>> and describe <<more specific description of the data>>.
+The data come from \<<place>\> and describe \<<more specific description of the data>\>.
 
-In order to clean the data, we <<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code>>.
+In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>.
 
-## <<Data Set 2>>
+## \<\<Data Set 2\>\>
 
 ```{r load_data2}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
-
+ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
+ice_extent_yearly
 # Reminder: do NOT print your data to the screen unless it's
 # completely necessary
 ```
 
-The data come from <<place>> and detail <<more specific description of the data>>.
+The data come from \<<place>\> and detail \<<more specific description of the data>\>.
 
-In order to clean the data, we <<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code>>
+In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>
 
-## <<Data Set 3>>
+## \<\<Data Set 3\>\>
 
 ```{r load_data2}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
+climate_awareness <- read_parquet("climate_awareness.parquet")
+climate_awareness
 ```
 
-The data come from <<place>> and detail <<more specific description of the data>>.
+The data come from \<<place>\> and detail \<<more specific description of the data>\>.
 
-In order to clean the data, we <<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code>>
+In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>
 
 ## Combining the Data
 
 Explain how any combinations of data were performed. Explain what kind of join was needed, whether columns had to be modified (for example, matching "country" names.)
 
-
-
-
-
 # Exploratory Data Analysis
 
 To achieve our goals, we explored the data by...
 
-We explored many aspects of the data, but will demonstrate three. These are <<insight 1>>, <<insight 2>>, and <<insight3>>
+We explored many aspects of the data, but will demonstrate three. These are \<\<insight 1\>\>, \<\<insight 2\>\>, and \<<insight3>\>
 
 The first aspect that we found interesting is shown in \@ref(fig:insight1). The insight should be specific to the data shown, not a general statement beyond the data (leave that for the conclusion).
 
@@ -152,7 +143,7 @@ Finally, \@ref(fig:insight3) shows ...
 
 # Conclusion and Future Work
 
-Overall, we found <<general ideas>>.
+Overall, we found \<<general ideas>\>.
 
 A second paragraph about our findings.
 
@@ -164,7 +155,11 @@ The limitations of this analysis are as follows. (Do not simply list potential i
 
 I am not strict about MLA or APA style or anything like that. For this report, I would much rather have your citations be easy to match to your insights.
 
-The easiest way is to use Rmd's [footnote](https://bookdown.org/yihui/rmarkdown/markdown-syntax.html#inline-formatting) syntax. This will put a number beside the word where the footnote appears, and the full text of the footnote at the bottom of the page (pdf) or end of the document (html). The syntax is:^[See the source view to see this footnote], where I suggest that you put in something like this^[The relevance to the insight is ... . From <<name of source and name of article>>, published on <<date>>, url: <<link to page>>] to make references for this assignment.
+The easiest way is to use Rmd's [footnote](https://bookdown.org/yihui/rmarkdown/markdown-syntax.html#inline-formatting) syntax. This will put a number beside the word where the footnote appears, and the full text of the footnote at the bottom of the page (pdf) or end of the document (html). The syntax is:[^1], where I suggest that you put in something like this[^2] to make references for this assignment.
+
+[^1]: See the source view to see this footnote
+
+[^2]: The relevance to the insight is ... . From \<<name of source and name of article>\>, published on \<<date>\>, url: \<<link to page>\>
 
 Alternatively, you could make a list of citations with their main arguments and why they're relevent to your insights, methods, etc.
 
