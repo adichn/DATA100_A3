@@ -1,0 +1,14 @@
+- [x] Overview 
+- [ ] NOAA data for Atlantic and Pacific Basin
+  - [x] Load in the Data
+  - [x] Combine into One Data Frame
+  - [ ] Fix Latitude and Longitude
+  - [ ] Extract Dates
+  - [X] Assign Storm Categories
+  - [ ] Plots and Summary Statistics!
+  - [ ] Clean Up
+- [ ] Sea Ice Data
+- [ ] Stats and Plots
+- [ ] Opinions on climate data from Meta (from A2)
+- [ ] COVID Data from Our World In Data
+- [ ] World Happiness Report Score (from 2023 report)
