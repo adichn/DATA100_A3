@@ -22,10 +22,17 @@ library(openxlsx)
 List all group members here:
 
 -   Aditya (169027493)
+<<<<<<< HEAD
 -   Andy
 -   Dibu (169708451)
 -   Oscar
 -   Taras
+=======
+-   Andy (169081356)
+-   Dibu
+-   Oscar (169057882)
+-   Taras (169099616)
+>>>>>>> cd70d0a8e9c8229d6d998926c24a40b37cb82a52
 
 This file will be submitted as an Rmd file to GradeScope. You will need to create a group on GradeScope with the correct members. *If the person who submits this does not list you, you will not get a grade on this assignment!!!* Make sure you trust the person who is submitting it!
 
@@ -189,7 +196,6 @@ Now, bind the two data frames together (row-wise). Since the `Basin` column alre
 Name the data frame `cyclones_data_update_0`.
 
 ```{r error=TRUE}
-# YOUR CODE HERE
 cyclones_data_update_0 <- bind_rows(at_cyclone, np_cyclone)
 print(cyclones_data_update_0)
 ```
@@ -241,7 +247,7 @@ To do this, you must choose whether to use `ObservYear` or `NameYear`.
 ```{r cyclones_data_update_2, error=TRUE}
 cyclones_data_update_2 <- cyclones_data_update_1 |>
     mutate(
-        date = make_datetime(ObservYear, Month, Day, Hour * 100 + Minute)
+        date = make_datetime(year = ObservYear,month = Month, day = Day, hour = Hour, min = Minute)
     )
 
 print(cyclones_data_update_2)
@@ -264,7 +270,6 @@ cyclones_data <- cyclones_data_update_2 |>
     mutate(
         category = ordered(
             case_when(
-                # YOUR CODE HERE
                 max_wind < 34 ~ "TD",
                 max_wind >= 34 & max_wind < 64 ~ "TS",
                 max_wind >= 64 & max_wind < 83 ~ "1",
@@ -292,7 +297,6 @@ print(cyclones_data)
 Now that we have a suitable data frame, save it as a parquet file with the file name `"cyclones_data.parquet"`.
 
 ```{r}
-# YOUR CODE HERE
 write_parquet(cyclones_data, "cyclones_data.parquet")
 ```
 
@@ -410,7 +414,6 @@ In the chunk below, find the maximum and minimum sea ice extent for each year (b
 
 ```{r}
 ice_extent_yearly <- ice_extent_daily |>
-    # YOUR CODE HERE
     group_by(year, region) |>
     summarize(
         min = min(ice_extent, na.rm = TRUE),
@@ -447,7 +450,6 @@ ggplot(ice_extent_yearly) +
 Finally, let's save the data to `ice_extent_yeary.parquet`.
 
 ```{r sea_ice_parquet, error=TRUE}
-# YOUR CODE HERE
 write_parquet(ice_extent_yearly, "ice_extent_yearly.parquet")
 ```
 
@@ -753,19 +755,14 @@ To make the data more convenient for Part 2, perform the following operations. T
 
 ```{r happiness}
 happiness <- read.xlsx("DataForTable2.1.xlsx") |>
-  clean_names() |>
+  janitor :: clean_names() |> 
   rename(
-    "country" = country_name
+    country = country_name
   ) |>
-  filter(
-    !is.na(life_ladder)
-  ) |>
-  group_by(
-    country
-  ) |>
-  slice_max(
-    order_by = year
-  )
+  filter(!(is.na(life_ladder)))|>
+group_by(country) |>                 
+  arrange(country, desc(year)) |>      
+  slice(1) 
 
 happiness
 ```
