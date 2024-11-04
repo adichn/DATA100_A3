@@ -412,14 +412,14 @@ ice_extent_yearly <- ice_extent_daily |>
     group_by(year, region) |>
     summarize(
         min = min(ice_extent, na.rm = TRUE),
-        max = max(ice_extent, na.rm = TRUE)
+        max = max(ice_extent, na.rm = TRUE),
+        .groups = "drop"
     ) |>
     pivot_longer(
         cols = c("min", "max"),
         names_to = "name",
         values_to = "value"
     )
-
 ice_extent_yearly
 ```
 
