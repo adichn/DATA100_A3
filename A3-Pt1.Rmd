@@ -25,7 +25,7 @@ List all group members here:
 -   Andy
 -   Dibu
 -   Oscar (169057882)
--   Taras
+-   Taras (169099616)
 
 This file will be submitted as an Rmd file to GradeScope. You will need to create a group on GradeScope with the correct members. *If the person who submits this does not list you, you will not get a grade on this assignment!!!* Make sure you trust the person who is submitting it!
 
@@ -527,7 +527,12 @@ The data are collected daily, which leads to a lot of data! This is probably mor
 In the chunk below, aggregate the data to be total cases in 2020, by country. Your solution should only have columns `country`, `continent` and `total_cases`. (*Hint*: The `year()` function will extract the year from a date column.)
 
 ```{r covid_2020, error=TRUE}
-# YOUR CODE HERE
+covid_2020 <- covid_cases |>
+ 
+  filter(year(date) == 2020) |>    
+  group_by(location) |>  
+  select(location, continent, total_cases)|>
+  rename(country = location)
 
 covid_2020
 ```
@@ -539,7 +544,7 @@ covid_2020
 Before we move on, we'll save `covid_2020.parquet` for use in Part 2.
 
 ```{r covid_2020_parquet, error=TRUE}
-# YOUR CODE HERE
+write_parquet(covid_2020, "covid_2020.parquet")
 ```
 
 ```{r}
