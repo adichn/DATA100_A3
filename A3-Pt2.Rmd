@@ -137,6 +137,18 @@ covid_2020
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 happiness <- read_parquet("happiness.parquet")
+happiness_mapped <- happiness |>
+    mutate(country = recode(country, # Match string names to match world map region names
+                            "United States" = "USA",
+                            "United Kingdom" = "UK",
+                            "Congo (Brazzaville)" = "Republic of Congo",
+                            "Congo (Kinshasa)" = "Democratic Republic of the Congo",
+                            "Hong Kong S.A.R. of China" = "Hong Kong",
+                            "Türkiye" = "Turkey",
+                            "Lao.People's.Democratic.Republic" = "Laos",
+                            "United Arab Emirates" = "UAE"
+                            )) |>
+    right_join(world_map, by = c("country" = "region"))
 happiness
 ```
 
@@ -159,16 +171,13 @@ The first aspect that we found interesting is shown in \@ref(fig:insight1). The 
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
 
 
-# possible correlations
-# gdp and climate awareness
-# covid cases and life ladder
-
-
+# below are possible correlations 
 world_map <- map_data("world")
 
 ggplot() +
     geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
-    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
+    # hurricanes +-5 of equator are extremely rare
+    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) + 
     geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = category), bins = 50, alpha = 0.7) +
     scale_fill_viridis_d(name = "Storm Category") +
     labs(
@@ -217,6 +226,27 @@ ggplot(cyclones_data) +
         y = "Proportion"
     ) +
     theme_minimal()
+
+
+
+
+
+
+
+
+happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
+                      "5" = "#fdae61", "6" = "#fee08b", "7" = "#66bd63",
+                      "8" = "#1a9850")
+
+ggplot(happiness_mapped, aes(x = long, y = lat, group = group, fill = factor(round(life_ladder)))) +
+    geom_polygon(color = "white") +
+    scale_fill_manual(values = happiness_colors, name = "Happiness Score") +
+    theme_void() +
+    labs(title = "World Happiness Scores by Country")
+
+
+
+
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
