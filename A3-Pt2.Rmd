@@ -180,6 +180,20 @@ ggplot() +
     scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
     theme_minimal() 
 
+ggplot() +
+    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
+    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = Basin), bins = 50, alpha = 0.7) +
+    scale_fill_viridis_d(name = "Storm Category") +
+    labs(
+        title = "North Atlantic and Northeast Pacific Cyclones by Basin",
+        x = "Longitude",
+        y = "Latitude"
+    ) +
+    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
+    scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
+    theme_minimal() 
+
 ggplot(cyclones_data) +
     aes(x = ObservYear, y = MonthName, fill = ..count..) +
     geom_bin2d() +
@@ -204,11 +218,33 @@ ggplot(cyclones_data) +
     ) +
     theme_minimal()
 
+cyclone_lat_summary <- cyclones_data %>%
+    mutate(lat_bin = cut(lat, breaks = seq(0, 90, by = 5), include.lowest = TRUE)) %>%
+    group_by(lat_bin) %>%
+    summarize(frequency = n())
 
-
-
-
-
+# Plot world map with transparent rectangles for each latitude band
+ggplot() +
+    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+    geom_rect(
+        data = cyclone_lat_summary,
+        aes(
+            xmin = -180, xmax = 180,
+            ymin = as.numeric(as.character(lat_bin)) * 5, , ymax = (as.numeric(as.character(lat_bin)) + 1) * 5)),
+            fill = frequency
+        ),
+        alpha = 0.4
+    ) +
+    scale_fill_viridis_c(name = "Storm Frequency", option = "C") +
+    coord_fixed(ratio = 2, xlim = c(-180, 180), ylim = c(0, 90)) +
+    labs(
+        title = "Hurricane Intensity by 5-Degree Latitude Bands (Northern Hemisphere)",
+        x = "Longitude",
+        y = "Latitude"
+    ) +
+    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
+    scale_y_continuous(breaks = c(0, 15, 30, 45, 60, 75, 90)) +
+    theme_minimal()
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
