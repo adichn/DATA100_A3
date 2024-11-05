@@ -25,16 +25,16 @@ You **must** be in a group in MyLS in order to see the DropBox used for submissi
 
 You **must** be in a group with people from the same section as you. MyLS does not allow for groups including students from both Data100A and Data100B.
 
-```{r setup, include=FALSE}
+```{r initial_setup, include=FALSE}
 # echo = FALSE will set the Rmd to *not* show the R code. Don't change this.
 # You may change the default figure width and figure height as you please.
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, fig.width = 6)
-
 # Put any libraries that you need to load here.
 # DO NOT PUT "install.packages()" IN AN RMD FILE!!!
 library(tidyverse)
 library(arrow)
 library(maps)
+library(tinytex)
 ```
 
 # Instructions
@@ -111,7 +111,7 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 
 ## \<\<Data Set 3\>\>
 
-```{r load_data2}
+```{r load_data3}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 climate_awareness <- read_parquet("climate_awareness.parquet")
@@ -124,7 +124,7 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 
 ## \<\<Data Set 4\>\>
 
-```{r load_data2}
+```{r load_data4}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 covid_2020 <- read_parquet("covid_2020.parquet")
@@ -133,7 +133,7 @@ covid_2020
 
 ## \<\<Data Set 5\>\>
 
-```{r load_data2}
+```{r load_data5}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 happiness <- read_parquet("happiness.parquet")
@@ -216,34 +216,6 @@ ggplot(cyclones_data) +
         x = "Observation Year",
         y = "Proportion"
     ) +
-    theme_minimal()
-
-cyclone_lat_summary <- cyclones_data %>%
-    mutate(lat_bin = cut(lat, breaks = seq(0, 90, by = 5), include.lowest = TRUE)) %>%
-    group_by(lat_bin) %>%
-    summarize(frequency = n())
-
-# Plot world map with transparent rectangles for each latitude band
-ggplot() +
-    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
-    geom_rect(
-        data = cyclone_lat_summary,
-        aes(
-            xmin = -180, xmax = 180,
-            ymin = as.numeric(as.character(lat_bin)) * 5, , ymax = (as.numeric(as.character(lat_bin)) + 1) * 5)),
-            fill = frequency
-        ),
-        alpha = 0.4
-    ) +
-    scale_fill_viridis_c(name = "Storm Frequency", option = "C") +
-    coord_fixed(ratio = 2, xlim = c(-180, 180), ylim = c(0, 90)) +
-    labs(
-        title = "Hurricane Intensity by 5-Degree Latitude Bands (Northern Hemisphere)",
-        x = "Longitude",
-        y = "Latitude"
-    ) +
-    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
-    scale_y_continuous(breaks = c(0, 15, 30, 45, 60, 75, 90)) +
     theme_minimal()
 ```
 
