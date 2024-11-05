@@ -207,8 +207,9 @@ ggplot() +
 ggplot() +
     geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
     geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
-    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = Basin), bins = 50, alpha = 0.7) +
+    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = Basin, alpha = ..count..), bins = 50) +
     scale_fill_viridis_d(name = "Storm Category") +
+    scale_alpha(range = c(0.35, 1.5)) +
     labs(
         title = "North Atlantic and Northeast Pacific Cyclones by Basin",
         x = "Longitude",
