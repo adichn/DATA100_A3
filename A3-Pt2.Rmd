@@ -219,11 +219,11 @@ ggplot(cyclones_data) +
 ggplot(cyclones_data) +
     aes(x = ObservYear, fill = category) +
     geom_bar(position = "fill") +
-    scale_fill_viridis_d(name = "Storm Category") +
     labs(
         title = "Proportion of Storm Categories Over Time",
         x = "Observation Year",
-        y = "Proportion"
+        y = "Proportion",
+        fill = "Storm Category"
     ) +
     theme_minimal()
 
