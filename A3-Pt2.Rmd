@@ -79,6 +79,21 @@ cyclones_data <- cyclones_data |>
 
 cyclones_data
 
+group_by_unique_cyclone <- function(cyclones_data) {
+  unique_cyclone <- 0
+  for (i in 2:length(cyclones_data$Number)) {
+    current_index <- cyclones_data$Number[i - 1]
+    next_index <- cyclones_data$Number[i]
+    if (current_index != next_index) {
+      unique_cyclone <- unique_cyclone + 1
+    }
+  }
+  print(unique_cyclone)
+}
+
+
+group_by_unique_cyclone(cyclones_data)
+
 # Note that the code in this document will not be shown
 # when you click "knit", so the placement of this code
 # chunk is purely for your benefit: You can see what happened
@@ -117,7 +132,6 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 climate_awareness <- read_parquet("climate_awareness.parquet")
-
 climate_awareness_mapped <- climate_awareness |>
     mutate(country = case_when(
         country == "United States" ~ "USA",
@@ -131,7 +145,7 @@ climate_awareness_mapped <- climate_awareness |>
         TRUE ~ country
     )) |>
     right_join(world_map, by = c("country" = "region"))
-climate_awareness_mapped
+climate_awareness
 ```
 
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
@@ -166,7 +180,7 @@ happiness_mapped <- happiness |>
         TRUE ~ country
     )) |>
     right_join(world_map, by = c("country" = "region"))
-happiness_mapped
+happiness
 ```
 
 ## Combining the Data
@@ -182,11 +196,66 @@ We explored many aspects of the data, but will demonstrate three. These are \<\<
 The first aspect that we found interesting is shown in \@ref(fig:insight1). The insight should be specific to the data shown, not a general statement beyond the data (leave that for the conclusion).
 
 ```{r insight1, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+
+climate_awareness_country <- climate_awareness |>
+  group_by(country) |>
+  summarize(avg_climate_awareness = mean(aware_alot, na.rm = TRUE))
+
+corruption_country <- happiness_data |>
+  group_by(country) |>
+  summarize(avg_perceptions_of_corruption = mean(perceptions_of_corruption, na.rm = TRUE))
+
+combined_data <- climate_awareness_country |>
+  inner_join(corruption_country, by = "country")
+
+ggplot(combined_data, aes(x = avg_climate_awareness, y = avg_perceptions_of_corruption)) +
+  geom_jitter(color = "blue", size = 3, alpha = 0.5, width = 0.1, height = 0.1) +
+  geom_hex(aes(alpha = ..count..), bins = 30) +
+  scale_alpha_continuous(range = c(0.1, 1)) + 
+  geom_smooth(method = "lm", color = "red", se = TRUE) + 
+  labs(
+    title = "Relationship between Climate Awareness and Perceptions of Corruption",
+    x = "Average Climate Awareness (%)",
+    y = "Average Perceptions of Corruption",
+    caption = "Each point represents a country."
+  ) +
+  theme_minimal()
+
+combined_data_long <- combined_data %>%
+  pivot_longer(cols = c(avg_climate_awareness, avg_perceptions_of_corruption), 
+               names_to = "variable", 
+               values_to = "value")
+
+
+ggplot(combined_data_long, aes(x = variable, y = value)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", outlier.color = "red", outlier.size = 2) +
+  labs(
+    title = "Distribution of Climate Awareness and Perceptions of Corruption by Country",
+    x = "Variable",
+    y = "Average Value",
+    caption = "Data represents averages per country."
+  ) +
+  theme_minimal()
+
+ggplot(combined_data_long, aes(x = variable, y = value)) +
+  geom_violin(fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  geom_boxplot(width = 0.1, color = "darkblue", outlier.color = "red", outlier.size = 2) +
+  labs(
+    title = "Distribution of Climate Awareness and Perceptions of Corruption by Country",
+    x = "Variable",
+    y = "Average Value",
+    caption = "Data represents averages per country."
+  ) +
+  theme_minimal()
+
+ggplot(combined_data_long, aes(x = value, fill = variable)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Density Plot of Climate Awareness and Corruption Perception")
+
 # This is an example of how you can control figures and captions in
 # an R chunk. Note that you can reference figures using:
 # \@ref(fig:insight1), where "insight1" is the label of this code
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
-
 
 # below are possible correlations 
 world_map <- map_data("world")
@@ -261,7 +330,7 @@ happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
 ggplot(happiness_mapped) +
     aes(x = long, y = lat, group = group, fill = factor(round(life_ladder))) +
     geom_polygon(color = "white") +
-    scale_fill_manual(values = happiness_colors, name = "Happiness Score") +
+    scale_fill_manual(values = happiness_colors, name = "Happiness\nScore") +
     theme_void() +
     labs(title = "World Happiness Scores by Country")
 
