@@ -89,24 +89,39 @@ The data come from \<<place>\> and describe \<<more specific description of the 
 
 In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>.
 
-## \<\<Data Set 2\>\>
+## \<\<ice_extent_yearly\>\>
 
 ```{r load_data2}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
-ggplot(ice_extent_yearly, aes(x = year, color = name, linetype = region)) +
-  geom_line(aes(y = value), size = 1) +
-  labs(title = "Yearly Ice Extent Trends in Antarctic and Arctic",
-       x = "Year",
-       y = "Ice Extent") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-ice_extent_yearly
+cyclones_data <- read_parquet("cyclones_data.parquet")
+colnames(cyclones_data)
+
+
+cyclone_yearly <- cyclones_data |>
+  group_by(ObservYear) |>
+  summarize(avg_max_wind = mean(max_wind, na.rm = TRUE),
+            avg_min_pressure = mean(min_pressure, na.rm = TRUE),
+            count = n())
+
+colnames(cyclone_yearly)[1] <- "year" 
+ice_arctic <- ice_extent_yearly |>
+  filter(region == "Arctic", name == "min") |>
+  select(year, min_extent = value)
+
+combined_data <- cyclone_yearly |>
+  inner_join(ice_arctic, by = "year")
+ggplot(combined_data, aes(x = avg_max_wind, y = min_extent)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = "Correlation between Cyclone Activity (Avg Max Wind) and Arctic Ice Extent",
+       x = "Average Max Wind Speed (Cyclones)",
+       y = "Arctic Minimum Ice Extent (million sq km)") +
+  theme_minimal()
 # Reminder: do NOT print your data to the screen unless it's
 # completely necessary
 ```
-
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
 
 In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>
