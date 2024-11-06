@@ -8,12 +8,7 @@ output: pdf_document
 List your group members, including their student numbers, here:
 
 <<<<<<< HEAD
--   John K. Samson (\#########)
--   John Darnielle (\#########)
--   Craig Finn (\#########)
--   Joel Plaskett (\########)
--   Ezra Furman (\#########)
-=======
+
 - Aditya Chauhan (169027493)
 - Andy Ferrer Lorenzo (169081356)
 - Craig Finn (#########)
@@ -100,6 +95,13 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
+ggplot(ice_extent_yearly, aes(x = year, color = name, linetype = region)) +
+  geom_line(aes(y = value), size = 1) +
+  labs(title = "Yearly Ice Extent Trends in Antarctic and Arctic",
+       x = "Year",
+       y = "Ice Extent") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ice_extent_yearly
 # Reminder: do NOT print your data to the screen unless it's
 # completely necessary
@@ -115,7 +117,21 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 climate_awareness <- read_parquet("climate_awareness.parquet")
-climate_awareness
+
+climate_awareness_mapped <- climate_awareness |>
+    mutate(country = case_when(
+        country == "United States" ~ "USA",
+        country == "United Kingdom" ~ "UK",
+        country == "Congo (Brazzaville)" ~ "Republic of Congo",
+        country == "Congo (Kinshasa)" ~ "Democratic Republic of the Congo",
+        country == "Hong Kong S.A.R. of China" ~ "Hong Kong",
+        country == "Türkiye" ~ "Turkey",
+        country == "Lao.People's.Democratic.Republic" ~ "Laos",
+        country == "United Arab Emirates" ~ "UAE",
+        TRUE ~ country
+    )) |>
+    right_join(world_map, by = c("country" = "region"))
+climate_awareness_mapped
 ```
 
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
@@ -138,18 +154,19 @@ covid_2020
 # necessary cleaning beyond what was done in Part 1
 happiness <- read_parquet("happiness.parquet")
 happiness_mapped <- happiness |>
-    mutate(country = recode(country, # Match string names to match world map region names
-                            "United States" = "USA",
-                            "United Kingdom" = "UK",
-                            "Congo (Brazzaville)" = "Republic of Congo",
-                            "Congo (Kinshasa)" = "Democratic Republic of the Congo",
-                            "Hong Kong S.A.R. of China" = "Hong Kong",
-                            "Türkiye" = "Turkey",
-                            "Lao.People's.Democratic.Republic" = "Laos",
-                            "United Arab Emirates" = "UAE"
-                            )) |>
+    mutate(country = case_when(
+        country == "United States" ~ "USA",
+        country == "United Kingdom" ~ "UK",
+        country == "Congo (Brazzaville)" ~ "Republic of Congo",
+        country == "Congo (Kinshasa)" ~ "Democratic Republic of the Congo",
+        country == "Hong Kong S.A.R. of China" ~ "Hong Kong",
+        country == "Türkiye" ~ "Turkey",
+        country == "Lao.People's.Democratic.Republic" ~ "Laos",
+        country == "United Arab Emirates" ~ "UAE",
+        TRUE ~ country
+    )) |>
     right_join(world_map, by = c("country" = "region"))
-happiness
+happiness_mapped
 ```
 
 ## Combining the Data
@@ -192,8 +209,9 @@ ggplot() +
 ggplot() +
     geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
     geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
-    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = Basin), bins = 50, alpha = 0.7) +
+    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = Basin, alpha = ..count..), bins = 50) +
     scale_fill_viridis_d(name = "Storm Category") +
+    scale_alpha(range = c(0.35, 1.5)) +
     labs(
         title = "North Atlantic and Northeast Pacific Cyclones by Basin",
         x = "Longitude",
@@ -218,7 +236,7 @@ ggplot(cyclones_data) +
 
 ggplot(cyclones_data) +
     aes(x = ObservYear, fill = category) +
-    geom_bar(position = "fill") +
+    geom_bar(position = "fill", width = 1) +
     labs(
         title = "Proportion of Storm Categories Over Time",
         x = "Observation Year",
@@ -234,17 +252,18 @@ ggplot(cyclones_data) +
 
 
 
+
+
 happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
                       "5" = "#fdae61", "6" = "#fee08b", "7" = "#66bd63",
                       "8" = "#1a9850")
 
-ggplot(happiness_mapped, aes(x = long, y = lat, group = group, fill = factor(round(life_ladder)))) +
+ggplot(happiness_mapped) +
+    aes(x = long, y = lat, group = group, fill = factor(round(life_ladder))) +
     geom_polygon(color = "white") +
     scale_fill_manual(values = happiness_colors, name = "Happiness Score") +
     theme_void() +
     labs(title = "World Happiness Scores by Country")
-
-
 
 
 ```
