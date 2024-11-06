@@ -183,11 +183,53 @@ We explored many aspects of the data, but will demonstrate three. These are \<\<
 The first aspect that we found interesting is shown in \@ref(fig:insight1). The insight should be specific to the data shown, not a general statement beyond the data (leave that for the conclusion).
 
 ```{r insight1, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+
+climate_awareness_country <- climate_awareness |>
+  group_by(country) |>
+  summarize(avg_climate_awareness = mean(aware_alot, na.rm = TRUE))
+
+corruption_country <- happiness_data |>
+  group_by(country) |>
+  summarize(avg_perceptions_of_corruption = mean(perceptions_of_corruption, na.rm = TRUE))
+
+combined_data <- climate_awareness_country |>
+  inner_join(corruption_country, by = "country")
+
+ggplot(combined_data, aes(x = avg_climate_awareness, y = avg_perceptions_of_corruption)) +
+  geom_jitter(color = "blue", size = 3, alpha = 0.5, width = 0.1, height = 0.1) +
+  geom_hex(aes(alpha = ..count..), bins = 30) +
+  scale_alpha_continuous(range = c(0.1, 1)) + 
+  geom_smooth(method = "lm", color = "red", se = TRUE) + 
+  labs(
+    title = "Relationship between Climate Awareness and Perceptions of Corruption",
+    x = "Average Climate Awareness (%)",
+    y = "Average Perceptions of Corruption",
+    caption = "Each point represents a country."
+  ) +
+  theme_minimal()
+
+combined_data_long <- combined_data %>%
+  pivot_longer(cols = c(avg_climate_awareness, avg_perceptions_of_corruption), 
+               names_to = "variable", 
+               values_to = "value")
+
+
+ggplot(combined_data_long, aes(x = variable, y = value)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", outlier.color = "red", outlier.size = 2) +
+  labs(
+    title = "Distribution of Climate Awareness and Perceptions of Corruption by Country",
+    x = "Variable",
+    y = "Average Value",
+    caption = "Data represents averages per country."
+  ) +
+  theme_minimal()
+
+
+
 # This is an example of how you can control figures and captions in
 # an R chunk. Note that you can reference figures using:
 # \@ref(fig:insight1), where "insight1" is the label of this code
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
-
 
 # below are possible correlations 
 world_map <- map_data("world")
