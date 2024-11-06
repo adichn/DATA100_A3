@@ -8,12 +8,7 @@ output: pdf_document
 List your group members, including their student numbers, here:
 
 <<<<<<< HEAD
--   John K. Samson (\#########)
--   John Darnielle (\#########)
--   Craig Finn (\#########)
--   Joel Plaskett (\########)
--   Ezra Furman (\#########)
-=======
+
 - Aditya Chauhan (169027493)
 - John Darnielle (#########)
 - Craig Finn (#########)
@@ -100,6 +95,13 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
+ggplot(ice_extent_yearly, aes(x = year, color = name, linetype = region)) +
+  geom_line(aes(y = value), size = 1) +
+  labs(title = "Yearly Ice Extent Trends in Antarctic and Arctic",
+       x = "Year",
+       y = "Ice Extent") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ice_extent_yearly
 # Reminder: do NOT print your data to the screen unless it's
 # completely necessary
