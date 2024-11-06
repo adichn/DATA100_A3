@@ -94,11 +94,6 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 ```{r load_data2}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
-# Load necessary libraries
-library(dplyr)
-library(ggplot2)
-library(arrow) 
-
 ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
 cyclones_data <- read_parquet("cyclones_data.parquet")
 happiness_data <- read_parquet("happiness.parquet")
@@ -232,7 +227,6 @@ The first aspect that we found interesting is shown in \@ref(fig:insight1). The 
 # \@ref(fig:insight1), where "insight1" is the label of this code
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
 
-
 # below are possible correlations 
 world_map <- map_data("world")
 
@@ -309,6 +303,8 @@ ggplot(happiness_mapped) +
     scale_fill_manual(values = happiness_colors, name = "Happiness Score") +
     theme_void() +
     labs(title = "World Happiness Scores by Country")
+
+
 
 
 ```
