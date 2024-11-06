@@ -79,6 +79,21 @@ cyclones_data <- cyclones_data |>
 
 cyclones_data
 
+group_by_unique_cyclone <- function(cyclones_data) {
+  unique_cyclone <- 0
+  for (i in 2:length(cyclones_data$Number)) {
+    current_index <- cyclones_data$Number[i - 1]
+    next_index <- cyclones_data$Number[i]
+    if (current_index != next_index) {
+      unique_cyclone <- unique_cyclone + 1
+    }
+  }
+  print(unique_cyclone)
+}
+
+
+group_by_unique_cyclone(cyclones_data)
+
 # Note that the code in this document will not be shown
 # when you click "knit", so the placement of this code
 # chunk is purely for your benefit: You can see what happened
@@ -118,7 +133,6 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # necessary cleaning beyond what was done in Part 1
 world_map <- map_data("world")
 climate_awareness <- read_parquet("climate_awareness.parquet")
-
 climate_awareness_mapped <- climate_awareness |>
     mutate(country = case_when(
         country == "United States" ~ "USA",
@@ -132,7 +146,7 @@ climate_awareness_mapped <- climate_awareness |>
         TRUE ~ country
     )) |>
     right_join(world_map, by = c("country" = "region"))
-climate_awareness_mapped
+climate_awareness
 ```
 
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
@@ -167,7 +181,7 @@ happiness_mapped <- happiness |>
         TRUE ~ country
     )) |>
     right_join(world_map, by = c("country" = "region"))
-happiness_mapped
+happiness
 ```
 
 ## Combining the Data
@@ -262,7 +276,7 @@ happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
 ggplot(happiness_mapped) +
     aes(x = long, y = lat, group = group, fill = factor(round(life_ladder))) +
     geom_polygon(color = "white") +
-    scale_fill_manual(values = happiness_colors, name = "Happiness Score") +
+    scale_fill_manual(values = happiness_colors, name = "Happiness\nScore") +
     theme_void() +
     labs(title = "World Happiness Scores by Country")
 
