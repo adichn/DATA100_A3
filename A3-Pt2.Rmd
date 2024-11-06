@@ -89,24 +89,64 @@ The data come from \<<place>\> and describe \<<more specific description of the 
 
 In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>.
 
-## \<\<Data Set 2\>\>
+## \<\<ice_extent_yearly\>\>
 
 ```{r load_data2}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
-ggplot(ice_extent_yearly, aes(x = year, color = name, linetype = region)) +
-  geom_line(aes(y = value), size = 1) +
-  labs(title = "Yearly Ice Extent Trends in Antarctic and Arctic",
-       x = "Year",
-       y = "Ice Extent") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-ice_extent_yearly
+cyclones_data <- read_parquet("cyclones_data.parquet")
+happiness_data <- read_parquet("happiness.parquet")
+
+cyclone_yearly <- cyclones_data |>
+  group_by(ObservYear) |> 
+  summarize(avg_max_wind = mean(max_wind, na.rm = TRUE),
+            avg_min_pressure = mean(min_pressure, na.rm = TRUE),
+            count = n())
+
+colnames(cyclone_yearly)[1] <- "year" 
+ice_arctic <- ice_extent_yearly |>
+  filter(region == "Arctic", name == "min") |>
+  select(year, arctic_min_extent = value)
+
+ice_antarctic <- ice_extent_yearly |>
+  filter(region == "Antarctic", name == "min") |>
+  select(year, antarctic_min_extent = value)
+
+happiness_yearly <- happiness_data |>
+  group_by(year) |>
+  summarize(avg_perceptions_of_corruption = mean(perceptions_of_corruption, na.rm = TRUE))
+
+combined_data <- cyclone_yearly |>
+  inner_join(ice_arctic, by = "year") |>
+  inner_join(ice_antarctic, by = "year") |>
+  inner_join(happiness_yearly, by = "year")
+
+
+p3 <- ggplot(combined_data, aes(x = avg_perceptions_of_corruption, y = arctic_min_extent)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = "Correlation between Perceptions of Corruption and Arctic Ice Extent",
+       x = "Average Perceptions of Corruption",
+       y = "Arctic Minimum Ice Extent (million sq km)") +
+  theme_minimal()
+
+p4 <- ggplot(combined_data, aes(x = avg_perceptions_of_corruption, y = antarctic_min_extent)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = "Correlation between Perceptions of Corruption and Antarctic Ice Extent",
+       x = "Average Perceptions of Corruption",
+       y = "Antarctic Minimum Ice Extent (million sq km)") +
+  theme_minimal()
+
+print(p1)
+print(p2)
+print(p3)
+print(p4)
+colnames(happiness_data)
 # Reminder: do NOT print your data to the screen unless it's
 # completely necessary
 ```
-
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
 
 In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>
@@ -187,7 +227,6 @@ The first aspect that we found interesting is shown in \@ref(fig:insight1). The 
 # \@ref(fig:insight1), where "insight1" is the label of this code
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
 
-
 # below are possible correlations 
 world_map <- map_data("world")
 
@@ -264,6 +303,8 @@ ggplot(happiness_mapped) +
     scale_fill_manual(values = happiness_colors, name = "Happiness Score") +
     theme_void() +
     labs(title = "World Happiness Scores by Country")
+
+
 
 
 ```
