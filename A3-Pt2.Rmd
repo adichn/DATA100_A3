@@ -238,7 +238,20 @@ ggplot(combined_data_long, aes(x = variable, y = value)) +
   ) +
   theme_minimal()
 
+ggplot(combined_data_long, aes(x = variable, y = value)) +
+  geom_violin(fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  geom_boxplot(width = 0.1, color = "darkblue", outlier.color = "red", outlier.size = 2) +
+  labs(
+    title = "Distribution of Climate Awareness and Perceptions of Corruption by Country",
+    x = "Variable",
+    y = "Average Value",
+    caption = "Data represents averages per country."
+  ) +
+  theme_minimal()
 
+ggplot(combined_data_long, aes(x = value, fill = variable)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Density Plot of Climate Awareness and Corruption Perception")
 
 # This is an example of how you can control figures and captions in
 # an R chunk. Note that you can reference figures using:
