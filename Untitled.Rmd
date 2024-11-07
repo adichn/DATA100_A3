@@ -10,7 +10,7 @@ List your group members, including their student numbers, here:
 <<<<<<< HEAD
 
 - Aditya Chauhan (169027493)
-- Andy Ferrer Lorenzo (169081356)
+- Taras Zakydalsky (169099616)
 - Craig Finn (#########)
 - Joel Plaskett (########)
 - Ezra Furman (#########)
@@ -131,6 +131,7 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 ```{r load_data3}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
+world_map <- map_data("world")
 climate_awareness <- read_parquet("climate_awareness.parquet")
 
 climate_awareness <- climate_awareness |>
@@ -283,6 +284,16 @@ This insight is supported by the summary statistics in table \@ref(tab:summary_s
 # is convenient for making nice tables. Other packages can
 # do much fancier things with tables, but keep in mind that
 # the insights should be the star, not the formatting.
+
+
+ggplot(happiness_mapped) +
+    aes(x = long, y = lat, group = group, fill = perceptions_of_corruption) +
+    geom_polygon(color = "darkgrey") +
+    theme_void() +
+  theme(plot.background = element_rect(fill = "grey", color = NA), legend.position = "bottom", legend.direction = "horizontal") +
+    labs(title = "Perception of Corruption by Country", fill = "Perceived\nCorruption") +
+    scale_fill_distiller(palette = "PRGn")
+
 ```
 
 The next insight that we found is shown in \@ref(fig:insight2).
