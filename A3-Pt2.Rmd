@@ -30,6 +30,8 @@ library(tidyverse)
 library(arrow)
 library(maps)
 library(tinytex)
+library(sf)
+library(rnaturalearth)
 ```
 
 # Instructions
@@ -68,32 +70,22 @@ cyclones_data <- read_parquet("cyclones_data.parquet")
 
 # Convert latitude(-90/+90) and longitude(-180/+180) to be within the correct range
 cyclones_data <- cyclones_data |>
+    rename(long = lon) |> #rename lon to long to match with world map
     mutate(
         lat = ((lat + 90) %% 180) - 90,  
-        lon = ((lon + 180) %% 360) - 180 
+        long = ((long + 180) %% 360) - 180 
     )
-
-cyclones_data <- cyclones_data |>
-    mutate(MonthName = factor(month.abb[Month], levels = month.abb)) |>
-    relocate(MonthName, .after = Month)
 
 cyclones_data
 
-group_by_unique_cyclone <- function(cyclones_data) {
-  unique_cyclone <- 0
-  for (i in 2:length(cyclones_data$Number)) {
-    current_index <- cyclones_data$Number[i - 1]
-    next_index <- cyclones_data$Number[i]
-    if (current_index != next_index) {
-      unique_cyclone <- unique_cyclone + 1
-    }
-  }
-  print(unique_cyclone)
-}
+cyclones_sf <- st_as_sf(cyclones_data, coords = c("long", "lat"), crs = 4326)
+world_sf <- ne_countries(scale = "medium", returnclass = "sf")
+cyclone_countries <- st_join(cyclones_sf, world_sf, join = st_intersects)
+countries_with_cyclones <- cyclone_countries %>%
+  distinct(admin) %>%
+  filter(!is.na(admin))
 
-
-group_by_unique_cyclone(cyclones_data)
-
+countries_with_cyclones
 # Note that the code in this document will not be shown
 # when you click "knit", so the placement of this code
 # chunk is purely for your benefit: You can see what happened
@@ -118,6 +110,14 @@ ggplot(ice_extent_yearly, aes(x = year, color = name, linetype = region)) +
   theme_minimal() +
   theme(legend.position = "bottom")
 ice_extent_yearly
+
+ggplot(cyclones_data, aes(x = year, color = name, linetype = region)) +
+  geom_line(aes(y = value), size = 1) +
+  labs(title = "Yearly Ice Extent Trends in Antarctic and Arctic",
+       x = "Year",
+       y = "Ice Extent") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 # Reminder: do NOT print your data to the screen unless it's
 # completely necessary
 ```
@@ -133,20 +133,40 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # necessary cleaning beyond what was done in Part 1
 world_map <- map_data("world")
 climate_awareness <- read_parquet("climate_awareness.parquet")
-climate_awareness_mapped <- climate_awareness |>
+
+climate_awareness <- climate_awareness |>
     mutate(country = case_when(
-        country == "United States" ~ "USA",
-        country == "United Kingdom" ~ "UK",
-        country == "Congo (Brazzaville)" ~ "Republic of Congo",
-        country == "Congo (Kinshasa)" ~ "Democratic Republic of the Congo",
-        country == "Hong Kong S.A.R. of China" ~ "Hong Kong",
-        country == "Türkiye" ~ "Turkey",
+        country == "United.States" ~ "United States of America",
+        country == "United.Kingdom" ~ "UK",
+        country == "United.Arab.Emirates" ~ "UAE",
+        country == "Trinidad.and.Tobago" ~ "Trinidad",
+        country == "Sri.Lanka" ~ "Sri Lanka",
+        country == "Bolivia.(Plurinational.State.of)" ~ "Bolivia",
+        country == "Bosnia.and.Herzegovina" ~ "Bosnia",
+        country == "Congo.(Democratic.Republic.of.the)" ~ "Congo",
+        country == "Costa.Rica" ~ "Costa Rica",
+        country == "Cote.d'Ivoire" ~ "Ivory Coast",
+        country == "Czechia" ~ "Czech Republic",
+        country == "Dominican.Republic" ~ "Dominican Republic",
+        country == "El.Salvador" ~ "El Salvador",
+        country == "Hong.Kong" ~ "Hong Kong",
         country == "Lao.People's.Democratic.Republic" ~ "Laos",
-        country == "United Arab Emirates" ~ "UAE",
+        country == "New.Zealand" ~ "New Zealand",
+        country == "Puerto.Rico" ~ "Puerto Rico",
+        country == "North.MAcedonia" ~ "Macedonia",
+        country == "Saudi.Arabia" ~ "Saudi Arabia",
+        country == "South.Africa" ~ "South Africa",
+        country == "South.Korea" ~ "South Korea",
+        country == "Antigua" ~ "Antigua and Barbuda",
         TRUE ~ country
-    )) |>
+    ))
+
+climate_awareness_mapped <- climate_awareness |>
     right_join(world_map, by = c("country" = "region"))
+
 climate_awareness
+
+
 ```
 
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
@@ -169,18 +189,18 @@ covid_2020
 # necessary cleaning beyond what was done in Part 1
 happiness <- read_parquet("happiness.parquet")
 happiness_mapped <- happiness |>
-    mutate(country = case_when(
-        country == "United States" ~ "USA",
+    mutate(country = case_when( #match country names to world_map
+        country == "United States" ~ "United States of America",
         country == "United Kingdom" ~ "UK",
-        country == "Congo (Brazzaville)" ~ "Republic of Congo",
-        country == "Congo (Kinshasa)" ~ "Democratic Republic of the Congo",
+        country == "Congo (Brazzaville)" ~ "Congo",
+        country == "Congo (Kinshasa)" ~ "Congo",
         country == "Hong Kong S.A.R. of China" ~ "Hong Kong",
         country == "Türkiye" ~ "Turkey",
         country == "Lao.People's.Democratic.Republic" ~ "Laos",
         country == "United Arab Emirates" ~ "UAE",
         TRUE ~ country
     )) |>
-    right_join(world_map, by = c("country" = "region"))
+    right_join(world_map, by = c("country" = "region")) #joins the long and lat of the respective countries to map them
 happiness
 ```
 
@@ -202,15 +222,13 @@ The first aspect that we found interesting is shown in \@ref(fig:insight1). The 
 # \@ref(fig:insight1), where "insight1" is the label of this code
 # chunk (the first bit of text after the "r" in "```{r label, options...}")
 
-
-# below are possible correlations 
 world_map <- map_data("world")
 
 ggplot() +
     geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
     # hurricanes +-5 of equator are extremely rare
     geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) + 
-    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = category), bins = 50, alpha = 0.7) +
+    geom_hex(data = cyclones_data, aes(x = long, y = lat, fill = category), bins = 50, alpha = 0.7) +
     scale_fill_viridis_d(name = "Storm Category") +
     labs(
         title = "North Atlantic and Northeast Pacific Cyclones by Category",
@@ -221,64 +239,39 @@ ggplot() +
     scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
     theme_minimal() 
 
-ggplot() +
-    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
-    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
-    geom_hex(data = cyclones_data, aes(x = lon, y = lat, fill = Basin, alpha = ..count..), bins = 50) +
-    scale_fill_viridis_d(name = "Storm Category") +
-    scale_alpha(range = c(0.35, 1.5)) +
-    labs(
-        title = "North Atlantic and Northeast Pacific Cyclones by Basin",
-        x = "Longitude",
-        y = "Latitude"
-    ) +
-    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
-    scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
-    theme_minimal() 
-
-ggplot(cyclones_data) +
-    aes(x = ObservYear, y = MonthName, fill = ..count..) +
-    geom_bin2d() +
-    scale_fill_distiller(direction = 1, palette = "YlOrRd") +
-    labs(
-        title = "Storm Frequency by Month and Year",
-        x = "Observation Year",
-        y = "Month",
-        fill = "Frequency"
-    ) +
-    theme_minimal()
 
 
-ggplot(cyclones_data) +
-    aes(x = ObservYear, fill = category) +
-    geom_bar(position = "fill", width = 1) +
-    labs(
-        title = "Proportion of Storm Categories Over Time",
-        x = "Observation Year",
-        y = "Proportion",
-        fill = "Storm Category"
-    ) +
-    theme_minimal()
+cyclone_affected_countries <- climate_awareness %>%
+  filter(country %in% countries_with_cyclones$admin)
+
+cyclone_unaffected_countries <- climate_awareness %>%
+  filter(!country %in% countries_with_cyclones$admin)
+
+climate_awareness_summary <- bind_rows(
+  cyclone_affected_countries |> mutate(group = "Affected"),
+  cyclone_unaffected_countries |> mutate(group = "Unaffected")
+)
+
+
+climate_awareness_long <- climate_awareness_summary |>
+  select(-aware_base) |>
+  pivot_longer(cols = starts_with("aware_"), names_to = "awareness_level", values_to = "average")
+
+
+ggplot(climate_awareness_long, aes(x = awareness_level, y = average, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "😭😭😭",
+    x = "Awareness Level",
+    y = "Average",
+    fill = "Cyclone Impact"
+  ) +
+  theme_minimal()
 
 
 
 
 
-
-
-
-
-
-happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
-                      "5" = "#fdae61", "6" = "#fee08b", "7" = "#66bd63",
-                      "8" = "#1a9850")
-
-ggplot(happiness_mapped) +
-    aes(x = long, y = lat, group = group, fill = factor(round(life_ladder))) +
-    geom_polygon(color = "white") +
-    scale_fill_manual(values = happiness_colors, name = "Happiness\nScore") +
-    theme_void() +
-    labs(title = "World Happiness Scores by Country")
 
 
 ```
@@ -314,6 +307,61 @@ The next insight that we found is shown in \@ref(fig:insight2).
 Finally, \@ref(fig:insight3) shows ...
 
 ```{r insight3, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+
+
+cyclones_data <- cyclones_data |>
+    mutate(MonthName = factor(month.abb[Month], levels = month.abb)) |>
+    relocate(MonthName, .after = Month)
+
+ggplot() +
+    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
+    geom_hex(data = cyclones_data, aes(x = long, y = lat, fill = Basin, alpha = ..count..), bins = 50) +
+    scale_fill_viridis_d(name = "Storm Category") +
+    scale_alpha(range = c(0.35, 1.5)) +
+    labs(
+        title = "North Atlantic and Northeast Pacific Cyclones by Basin",
+        x = "Longitude",
+        y = "Latitude"
+    ) +
+    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
+    scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
+    theme_minimal() 
+
+ggplot(cyclones_data) +
+    aes(x = ObservYear, y = MonthName, fill = ..count..) +
+    geom_bin2d() +
+    scale_fill_distiller(direction = 1, palette = "YlOrRd") +
+    labs(
+        title = "Storm Frequency by Month and Year",
+        x = "Observation Year",
+        y = "Month",
+        fill = "Frequency"
+    ) +
+    theme_minimal()
+
+
+ggplot(cyclones_data) +
+    aes(x = ObservYear, fill = category) +
+    geom_bar(position = "fill", width = 1) +
+    labs(
+        title = "Proportion of Storm Categories Over Time",
+        x = "Observation Year",
+        y = "Proportion",
+        fill = "Storm Category"
+    ) +
+    theme_minimal()
+
+happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
+                      "5" = "#fdae61", "6" = "#fee08b", "7" = "#66bd63",
+                      "8" = "#1a9850")
+
+ggplot(happiness_mapped) +
+    aes(x = long, y = lat, group = group, fill = factor(round(life_ladder))) +
+    geom_polygon(color = "white") +
+    scale_fill_manual(values = happiness_colors, name = "Happiness\nScore") +
+    theme_void() +
+    labs(title = "World Happiness Scores by Country")
 ```
 
 # Conclusion and Future Work
