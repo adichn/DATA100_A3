@@ -83,16 +83,16 @@ cyclones_data <- st_as_sf(cyclones_data, coords = c("long", "lat"), crs = 4326, 
 
 cyclones_data
 
-countries_with_cyclone <- cyclones_data %>%
+countries_with_cyclone <- cyclones_data |>
   filter(!is.na(name)) |>
     group_by(name) |>
       summarise(count = n()) |>
         rename(country = name)
 
-countries_without_cyclone <- world %>%
-  st_drop_geometry() %>%
-  select(name) %>%
-  rename(country = name) %>%
+countries_without_cyclone <- world |>
+  st_drop_geometry() |>
+  select(name) |>
+  rename(country = name) |>
   filter(!country %in% countries_with_cyclone$country) 
 
 countries_with_cyclone
