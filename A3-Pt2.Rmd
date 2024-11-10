@@ -67,6 +67,7 @@ By the end of this report, we will have shown ...
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 cyclones_data <- read_parquet("cyclones_data.parquet")
+world <- ne_countries(scale = "medium", returnclass = "sf")
 
 # Convert latitude(-90/+90) and longitude(-180/+180) to be within the correct range
 cyclones_data <- cyclones_data |>
@@ -76,35 +77,26 @@ cyclones_data <- cyclones_data |>
         long = ((long + 180) %% 360) - 180 
     )
 
+cyclones_data <- st_as_sf(cyclones_data, coords = c("long", "lat"), crs = 4326, remove = FALSE) |>
+  st_join(world["name"], left = TRUE)
+
+
 cyclones_data
 
-countries_with_cyclones <- data.frame(
-  country = c(
-    "United States of America", "Dominican Republic", "Haiti", "Cuba", "Canada", "Puerto Rico", 
-    "Mexico", "The Bahamas", "Guatemala", "Jamaica", "Nicaragua", "Colombia", "United Kingdom", 
-    "Ireland", "France", "Costa Rica", "Honduras", "Belize", "Antigua and Barbuda", "El Salvador", 
-    "Iceland", "Cabo Verde", "Greenland", "Saint Lucia", "Anguilla", "Norway", "Portugal", "Spain", 
-    "Dominica", "Sweden", "Finland", "Russia", "Panama", "Senegal", "Curaçao", "Guinea", "Venezuela", 
-    "Trinidad and Tobago", "British Virgin Islands", "Morocco", "Algeria", "Grenada", 
-    "Turks and Caicos Islands", "Barbados", "Saint Vincent and the Grenadines", "Japan"
-  )
-)
+countries_with_cyclone <- cyclones_data |>
+  filter(!is.na(name)) |>
+    group_by(name) |>
+      summarise(count = n()) |>
+        rename(country = name)
 
-countries_with_cyclones <- countries_with_cyclones |>
-  left_join(
-    cyclone_countries |>
-      rename(country = admin) |>
-      group_by(country) |>
-      mutate(
-        storm_id = cumsum(c(TRUE, diff(Number) != 0))
-      ) |>
-      summarise(num_unique_storms = n_distinct(storm_id)),
-    by = "country"
-  )
+countries_without_cyclone <- world |>
+  st_drop_geometry() |>
+  select(name) |>
+  rename(country = name) |>
+  filter(!country %in% countries_with_cyclone$country) 
 
-countries_with_cyclones
-
-
+countries_with_cyclone
+countries_without_cyclone
 
 # Note that the code in this document will not be shown
 # when you click "knit", so the placement of this code
@@ -243,48 +235,54 @@ ggplot() +
     theme_minimal() 
 
 
-total_storms_affected <- sum(cyclone_affected_countries$num_unique_storms)
-total_storms_unaffected <- nrow(cyclone_unaffected_countries)  
 
-climate_awareness_weighted <- climate_awareness_summary |>
-  group_by(group) |>
-  summarize(
-    aware_alittle = sum(aware_alittle, na.rm = TRUE),
-    aware_alot = sum(aware_alot, na.rm = TRUE),
-    aware_moderate = sum(aware_moderate, na.rm = TRUE),
-    aware_no = sum(aware_no, na.rm = TRUE),
-    aware_refuse = sum(aware_refuse, na.rm = TRUE),
-    .groups = "drop"
-  ) |>
-  pivot_longer(
-    cols = c(aware_alittle, aware_alot, aware_moderate, aware_no, aware_refuse), 
-    names_to = "awareness_level", 
-    values_to = "weighted_average"
-  ) |>
+climate_affected <- climate_awareness |>
+  filter(country %in% countries_with_cyclone$country) |>
+  left_join(countries_with_cyclone, by = "country") |>
+  rename(cyclone_count = count) |>
   mutate(
-    average = case_when(
-      group == "Affected" ~ weighted_average / total_storms_affected,
-      group == "Unaffected" ~ weighted_average / total_storms_unaffected
-    )
+    affected = "Affected",
+    weighting = cyclone_count / sum(cyclone_count, na.rm = TRUE)
   )
 
+climate_unaffected <- climate_awareness |>
+  filter(country %in% countries_without_cyclone$country) |>
+  mutate(affected = "Unaffected", weighting = 1)
 
-ggplot(climate_awareness_weighted, aes(x = awareness_level, y = average, fill = group)) +
-  geom_bar(stat = "identity") +
-  scale_y_log10() +
+climate_comparison <- bind_rows(climate_affected, climate_unaffected) |>
+  pivot_longer(
+    cols = c(aware_alot, aware_moderate, aware_alittle, aware_refuse),
+    names_to = "awareness_category",
+    values_to = "value"
+  ) |> mutate(awareness_category = factor(
+    awareness_category,
+    levels = c("aware_alot", "aware_moderate", "aware_alittle", "aware_refuse")
+  ))
+
+awareness_averages <- climate_comparison |>
+  group_by(awareness_category, affected) |>
+  summarise(
+    avg_value = ifelse(affected == "Affected", 
+                       weighted.mean(value, w = weighting, na.rm = TRUE),
+                       mean(value, na.rm = TRUE)),
+    .groups = "drop"
+  )
+
+ggplot(awareness_averages, aes(x = awareness_category, y = avg_value, fill = affected)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_discrete(name = "Storm Impact") +
+  scale_x_discrete(labels = c(
+    "aware_alot" = "Aware a Lot",
+    "aware_moderate" = "Moderately Aware",
+    "aware_alittle" = "Aware a Little",
+    "aware_refuse" = "Refused Awareness"
+  )) +
   labs(
-    title = "Weighted Climate Awareness by Cyclone Impact",
-    x = "Awareness Level",
-    y = "Weighted Average",
-    fill = "Cyclone Impact"
+    title = "Average Climate Awareness Levels in Cyclone Affected and Unaffected Countries",
+    x = "Awareness Category",
+    y = "Average Awareness Level"
   ) +
   theme_minimal()
-
-
-
-
-
-
 
 ```
 
