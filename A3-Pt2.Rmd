@@ -289,6 +289,18 @@ ggplot(awareness_averages, aes(x = awareness_category, y = avg_value, fill = aff
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
 
 ```{r summary_stats}
+covid_2020 <- read_parquet("covid_2020.parquet")
+happiness <- read_parquet("happiness.parquet")
+
+
+conbined_data <- full_join(covid_2020, happiness, by = "country") |>
+  ungroup()|>
+  select(where(is.numeric))
+
+cor_matrix <- cor(conbined_data, use = "complete.obs")
+cor_matrix
+
+
 # Calculate the relevant summary statistics here.
 # Note that the "kable" function in the "knitr" package
 # is convenient for making nice tables. Other packages can
