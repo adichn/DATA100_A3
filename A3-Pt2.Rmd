@@ -235,14 +235,13 @@ ggplot() +
     theme_minimal() 
 
 
-
 cyclone_affected <- climate_awareness |>
   filter(country %in% countries_with_cyclone$country) |>
   left_join(countries_with_cyclone, by = "country") |>
   rename(cyclone_count = count) |>
   mutate(affected = "Affected")
 
-# Weight the cyclone_affected data by cyclone_count for each awareness level
+# Weight the cyclone_affected data by cyclone_count for each awareness levels
 weighted_cyclone_affected <- cyclone_affected |>
   summarise(
     aware_no = sum(aware_no * cyclone_count) / sum(cyclone_count),
@@ -255,8 +254,6 @@ weighted_cyclone_affected <- cyclone_affected |>
 cyclone_unaffected <- climate_awareness |>
   filter(country %in% countries_without_cyclone$country) |>
   mutate(affected = "Unaffected")
-
-
 
 
 (world_cyclone <- bind_rows(
