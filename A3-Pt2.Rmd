@@ -237,53 +237,51 @@ ggplot() +
 
 
 
-climate_affected <- climate_awareness |>
+cyclone_affected <- climate_awareness |>
   filter(country %in% countries_with_cyclone$country) |>
   left_join(countries_with_cyclone, by = "country") |>
   rename(cyclone_count = count) |>
-  mutate(
-    affected = "Affected",
-    weighting = cyclone_count / sum(cyclone_count, na.rm = TRUE)
-  )
+  mutate(affected = "Affected")
 
-climate_unaffected <- climate_awareness |>
-  filter(country %in% countries_without_cyclone$country) |>
-  mutate(affected = "Unaffected", weighting = 1)
-
-climate_comparison <- bind_rows(climate_affected, climate_unaffected) |>
-  pivot_longer(
-    cols = c(aware_alot, aware_moderate, aware_alittle, aware_refuse),
-    names_to = "awareness_category",
-    values_to = "value"
-  ) |> mutate(awareness_category = factor(
-    awareness_category,
-    levels = c("aware_alot", "aware_moderate", "aware_alittle", "aware_refuse")
-  ))
-
-awareness_averages <- climate_comparison |>
-  group_by(awareness_category, affected) |>
+# Weight the cyclone_affected data by cyclone_count for each awareness level
+weighted_cyclone_affected <- cyclone_affected |>
   summarise(
-    avg_value = ifelse(affected == "Affected", 
-                       weighted.mean(value, w = weighting, na.rm = TRUE),
-                       mean(value, na.rm = TRUE)),
-    .groups = "drop"
+    aware_no = sum(aware_no * cyclone_count) / sum(cyclone_count),
+    aware_alittle = sum(aware_alittle * cyclone_count) / sum(cyclone_count),
+    aware_moderate = sum(aware_moderate * cyclone_count) / sum(cyclone_count),
+    aware_alot = sum(aware_alot * cyclone_count) / sum(cyclone_count),
+    aware_refuse = sum(aware_refuse * cyclone_count) / sum(cyclone_count)
   )
 
-ggplot(awareness_averages, aes(x = awareness_category, y = avg_value, fill = affected)) +
+cyclone_unaffected <- climate_awareness |>
+  filter(country %in% countries_without_cyclone$country) |>
+  mutate(affected = "Unaffected")
+
+
+
+
+(world_cyclone <- bind_rows(
+  weighted_cyclone_affected |>
+    mutate(affected = "Affected"),
+  cyclone_unaffected |>
+    summarise(across(where(is.numeric), mean, na.rm = TRUE)) |>
+    mutate(affected = "Unaffected")
+))
+
+world_cyclone_long <- world_cyclone |>
+  pivot_longer(cols = c(aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse), 
+               names_to = "awareness_level", values_to = "value") |>
+  mutate(awareness_level = factor(awareness_level, 
+                                  levels = c("aware_alot", "aware_moderate", "aware_alittle", "aware_no", "aware_refuse"),
+                                  labels = c("Aware", "Moderately Aware", "Aware a Little", "Not Aware", "Refuse")))
+
+ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected)) +
   geom_bar(stat = "identity", position = "dodge") +
-  scale_fill_discrete(name = "Storm Impact") +
-  scale_x_discrete(labels = c(
-    "aware_alot" = "Aware a Lot",
-    "aware_moderate" = "Moderately Aware",
-    "aware_alittle" = "Aware a Little",
-    "aware_refuse" = "Refused Awareness"
-  )) +
-  labs(
-    title = "Average Climate Awareness Levels in Cyclone Affected and Unaffected Countries",
-    x = "Awareness Category",
-    y = "Average Awareness Level"
-  ) +
+  labs(x = "Awareness Category", y = "Awareness Level", fill = "Cyclone Impact",
+       title = "Comparison of Awareness Levels Between Cyclone-Affected and Unaffected") +
   theme_minimal()
+
+
 
 ```
 
