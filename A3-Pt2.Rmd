@@ -291,20 +291,16 @@ This insight is supported by the summary statistics in table \@ref(tab:summary_s
 covid_2020 <- read_parquet("covid_2020.parquet")
 happiness <- read_parquet("happiness.parquet")
 
-
-conbined_data <- full_join(covid_2020, happiness, by = "country") |>
+# combine the data and maka a corelation matrix
+cor_matrix <- inner_join(covid_2020, happiness, by = "country") |>
   ungroup()|>
-  select(where(is.numeric))
-
-cor_matrix <- cor(conbined_data, use = "complete.obs")
+  select(where(is.numeric)) |>
+  cor( use = "complete.obs")|>
+  round(digits = 3)
 cor_matrix
 
 
-# Calculate the relevant summary statistics here.
-# Note that the "kable" function in the "knitr" package
-# is convenient for making nice tables. Other packages can
-# do much fancier things with tables, but keep in mind that
-# the insights should be the star, not the formatting.
+
 ```
 
 The next insight that we found is shown in \@ref(fig:insight2).
