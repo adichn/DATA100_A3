@@ -32,6 +32,7 @@ library(maps)
 library(tinytex)
 library(sf)
 library(rnaturalearth)
+library(corrplot)
 ```
 
 # Instructions
@@ -291,14 +292,16 @@ This insight is supported by the summary statistics in table \@ref(tab:summary_s
 covid_2020 <- read_parquet("covid_2020.parquet")
 happiness <- read_parquet("happiness.parquet")
 
-# combine the data and maka a corelation matrix
+# combine the data and make a correlation matrix
 cor_matrix <- inner_join(covid_2020, happiness, by = "country") |>
+  # if not un-grounded R will add countries back into the dataframe
   ungroup()|>
   select(where(is.numeric)) |>
   cor( use = "complete.obs")|>
-  round(digits = 3)
+   round(digits = 3)
 cor_matrix
 
+corrplot(cor_matrix, method = "color", order = "hclust")
 
 
 ```
