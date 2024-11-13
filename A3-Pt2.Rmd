@@ -299,7 +299,7 @@ Explain how any combinations of data were performed. Explain what kind of join w
 
 To achieve our goals, we explored the data by...
 
-We explored many aspects of the data, but will demonstrate three. These are \<\<insight 1\>\>, \<\<insight 2\>\>, and \<<insight3>\>
+We explored many aspects of the data, but will demonstrate three. These are \<\<Social Support VS Life Expectancy\>\>, \<\<Perception of Corruption VS Covid Cases\>\>, and \<<Freedom to Make Life Choices & Climate Awareness>\>
 
 The first aspect that we found interesting is shown in \@ref(fig:insight1). The insight should be specific to the data shown, not a general statement beyond the data (leave that for the conclusion).
 
