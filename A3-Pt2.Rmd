@@ -64,7 +64,6 @@ By the end of this report, we will have shown ...
 ## \<\<Data Set 1\>\>
 
 ```{r load_data1}
-#ice_extent
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 cyclones_data <- read_parquet("cyclones_data.parquet")
@@ -485,6 +484,7 @@ ggplot(combined_data, aes(x = distance_to_equator_km, y = total_cases)) +
   scale_fill_viridis_c() + 
   theme_minimal()
 
+colnames(happiness)
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
