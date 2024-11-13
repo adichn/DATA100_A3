@@ -281,7 +281,7 @@ ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected))
   labs(x = "Awareness Category", y = "Awareness Level", fill = "Cyclone Impact",
        title = "Comparison of Awareness Levels Between Cyclone-Affected and Unaffected") +
   theme_minimal()
-cor()
+
 
 
 
