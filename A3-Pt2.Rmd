@@ -486,6 +486,7 @@ ggplot(combined_data, aes(x = distance_to_equator_km, y = total_cases)) +
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
 
+<<<<<<< HEAD
 ```{r summary_stats}
 covid_2020 <- read_parquet("covid_2020.parquet")
 happiness <- read_parquet("happiness.parquet")
@@ -493,13 +494,24 @@ happiness <- read_parquet("happiness.parquet")
 covid_2020
 happiness
 climate_corr <- climate_awareness
+=======
+
+
+
+```{r summary_stats}
+corr_covid <- covid_2020
+corr_happiness <- happiness
+climate_corr <- climate_awareness
+
+>>>>>>> d4ea48c87fe9ba1036706f633cbdf80ef57674e3
 # combine the data and make a correlation matrix
-cor_matrix <- inner_join(covid_2020, happiness, by = "country") |>
+cor_matrix <- inner_join(corr_covid, corr_happiness, by = "country") |>
               inner_join(climate_corr, by = "country")|>
   # if not un-grounded R will add countries back into the dataframe
   ungroup()|>
   select(where(is.numeric), -year, -aware_base) |>
   # renamed some columns to have shorter names
+  
   rename(
     corruption = perceptions_of_corruption,
     healthy_life_expectancy = healthy_life_expectancy_at_birth,
@@ -507,11 +519,18 @@ cor_matrix <- inner_join(covid_2020, happiness, by = "country") |>
   )|>
   cor( use = "complete.obs")|>
    round(digits = 3)
-cor_matrix
+
 
 corrplot(cor_matrix, method = "pie", order = "hclust")
 
-library(tinytex)
+
+
+data_combined |>
+  group_by(continent)|>
+  summarise(
+    Social_Support_Life_Ladder_correlation = cor(social_support, life_ladder, use = "complete.obs")
+)
+
 ```
 
 The next insight that we found is shown in \@ref(fig:insight2).
