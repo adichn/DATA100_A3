@@ -289,6 +289,9 @@ ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected))
 
 ```{r}
 
+
+# Covid_cases & freedom to make life choices
+
 data_combined <- inner_join(covid_2020, happiness, by = "country")
 
 median_total_cases <- median(data_combined$total_cases, na.rm = TRUE)
