@@ -320,6 +320,9 @@ ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected))
 
 
 
+
+
+
 ```
 
 
@@ -487,23 +490,13 @@ ggplot(combined_data, aes(x = distance_to_equator_km, y = total_cases)) +
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
 
 <<<<<<< HEAD
-```{r summary_stats}
-covid_2020 <- read_parquet("covid_2020.parquet")
-happiness <- read_parquet("happiness.parquet")
-
-covid_2020
-happiness
-climate_corr <- climate_awareness
-=======
-
-
 
 ```{r summary_stats}
 corr_covid <- covid_2020
 corr_happiness <- happiness
 climate_corr <- climate_awareness
 
->>>>>>> d4ea48c87fe9ba1036706f633cbdf80ef57674e3
+#>>>>>>> d4ea48c87fe9ba1036706f633cbdf80ef57674e3
 # combine the data and make a correlation matrix
 cor_matrix <- inner_join(corr_covid, corr_happiness, by = "country") |>
               inner_join(climate_corr, by = "country")|>
@@ -536,6 +529,30 @@ data_combined |>
 The next insight that we found is shown in \@ref(fig:insight2).
 
 ```{r insight2, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+
+
+joint_data <- inner_join(climate_awareness, happiness, by = "country")|>
+  
+  select(country, aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse,  freedom_to_make_life_choices)|>
+  
+  pivot_longer(cols  = c(aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse, ), names_to =  "awareness", values_to = "aware_percent")|>  
+  
+  ggplot()+
+    aes(
+      x = freedom_to_make_life_choices,
+      y = aware_percent,
+      colour = awareness
+    )+
+    geom_point()+
+    geom_smooth( method = "lm", color = "red", se = TRUE, size = 0.75) +
+    facet_wrap(~awareness)+
+    labs(
+    title = "Freedom to Make Life Choices and Awareness by Awareness Type",
+    x = "Awareness (%)",
+    y = "freedom to make life choices (%)"
+    )
+
+joint_data
 # This figure will have a height of 4 and a width of 6.
 # Feel free to change this, and to apply different sizes
 # to the other figures you create.
