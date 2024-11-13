@@ -47,7 +47,7 @@ You will only submit the PDF version of this document. To knit to PDF, you'll ne
 
 # Abstract
 
-General context, very brief data descriptions, techniques used, and general conclusions, all contained within a single, concise paragraph.
+
 
 # Introduction
 
@@ -284,6 +284,28 @@ ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected))
 
 
 
+```
+
+
+```{r}
+
+data_combined <- inner_join(covid_2020, happiness, by = "country")
+
+median_total_cases <- median(data_combined$total_cases, na.rm = TRUE)
+
+ggplot(data_combined, aes(x = total_cases, y = freedom_to_make_life_choices)) +
+  geom_point(alpha = 0.5, position = "jitter") + 
+  geom_smooth(method = "lm", color = "blue", se = TRUE) + 
+  geom_vline(xintercept = median_total_cases, color = "red", linetype = "dashed", linewidth = 1) + 
+  labs(
+    title = "Comparison of COVID-19 Cases and Freedom",
+    x = "Total COVID-19 Cases",
+    y = "Freedom"
+  ) +
+  scale_x_log10() +  
+  scale_y_log10() + 
+  theme_minimal() +
+  theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
