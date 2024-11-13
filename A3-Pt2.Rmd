@@ -140,6 +140,8 @@ world_cyclone_long <- world_cyclone |>
 cyclones_data
 world_cyclone
 
+
+
 # Note that the code in this document will not be shown
 # when you click "knit", so the placement of this code
 # chunk is purely for your benefit: You can see what happened
@@ -156,6 +158,17 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 ice_extent_yearly <- read_parquet("ice_extent_yearly.parquet")
+ice_extent_yearly
+
+ggplot(ice_extent_yearly, aes(x = year, y = value, color = name)) +
+  geom_line() +
+  facet_wrap(~ region) +
+  labs(
+    title = "Yearly Ice Extent (Min and Max) for Arctic and Antarctic Regions",
+    x = "Year",
+    y = "Ice Extent (in million square kilometers)"
+  ) +
+  theme_minimal()
 # Reminder: do NOT print your data to the screen unless it's
 # completely necessary
 ```
@@ -204,6 +217,7 @@ climate_awareness_mapped <- climate_awareness |>
 climate_awareness
 
 
+
 ```
 
 The data come from \<<place>\> and detail \<<more specific description of the data>\>.
@@ -238,6 +252,28 @@ happiness_mapped <- happiness |>
         TRUE ~ country
     )) |>
     right_join(world_map, by = c("country" = "region")) #joins the long and lat of the respective countries to map them
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+equator <- st_sfc(st_linestring(rbind(c(-180, 0), c(180, 0))), crs = st_crs(world))
+world <- st_transform(world, crs = 3857)
+equator <- st_transform(equator, crs = 3857)
+
+happiness <- happiness |>
+  left_join(
+    world |>
+      mutate(
+        centroid = st_centroid(geometry),
+        latitude = st_coordinates(centroid)[, 2],
+        hemisphere = ifelse(latitude > 0, "North", "South"),
+        distance_to_equator_km = as.numeric(st_distance(centroid, equator)) / 1000
+      ) |>
+      select(name, hemisphere, distance_to_equator_km) |>
+      rename(country = name),
+    by = "country"
+  )
+
+
 happiness
 ```
 
@@ -278,7 +314,7 @@ ggplot() +
 
 ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected)) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Awareness Category", y = "Awareness Level", fill = "Cyclone Impact",
+  labs(x = "Awareness Category", y = "% Awareness Level", fill = "Cyclone Impact",
        title = "Comparison of Awareness Levels Between Cyclone-Affected and Unaffected") +
   theme_minimal()
 
@@ -292,6 +328,8 @@ This insight is supported by the summary statistics in table \@ref(tab:summary_s
 covid_2020 <- read_parquet("covid_2020.parquet")
 happiness <- read_parquet("happiness.parquet")
 
+covid_2020
+happiness
 # combine the data and make a correlation matrix
 cor_matrix <- inner_join(covid_2020, happiness, by = "country") |>
   # if not un-grounded R will add countries back into the dataframe
