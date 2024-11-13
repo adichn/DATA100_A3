@@ -12,7 +12,7 @@ List your group members, including their student numbers, here:
 - Aditya Chauhan (169027493)
 - Andy Ferrer Lorenzo (169081356)
 - Oscar Saul (169057882)
-- Taras Zakydalsky (19099616)
+- Taras Zakydalsky (169099616)
 - Ezra Furman (#########)
 >>>>>>> 5f7fee6584554860c6964f24cabaeb60755a72fe
 
