@@ -33,6 +33,9 @@ library(tinytex)
 library(sf)
 library(rnaturalearth)
 library(corrplot)
+library(scales)
+library(geosphere)
+library(ggridges)
 ```
 
 # Instructions
@@ -67,6 +70,7 @@ By the end of this report, we will have shown ...
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 cyclones_data <- read_parquet("cyclones_data.parquet")
+climate_awareness <- read_parquet("climate_awareness.parquet")
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 # ________________Map long and lat to scale________________
@@ -77,6 +81,20 @@ cyclones_data <- cyclones_data |>
         lat = ((lat + 90) %% 180) - 90,  
         long = ((long + 180) %% 360) - 180 
     )
+
+# ________________Determine distance of cyclone to equator________________
+equator_point <- c(0, 0)
+cyclones_data <- cyclones_data %>%
+  mutate(
+    km_distance_from_equator = distGeo(cbind(long, lat), cbind(long, 0)) / 1000
+  )
+
+# ________________Determine distance of cyclone to equator________________
+equator_point <- c(0, 0)
+cyclones_data <- cyclones_data %>%
+  mutate(
+    km_distance_from_equator = distGeo(cbind(long, lat), cbind(long, 0)) / 1000
+  )
 
 # ________________Convert long and lat points to countries________________
 cyclones_data <- st_as_sf(cyclones_data, coords = c("long", "lat"), crs = 4326, remove = FALSE) |>
@@ -182,6 +200,7 @@ In order to clean the data, we \<\<steps to clean the data, concise but precise 
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 climate_awareness <- read_parquet("climate_awareness.parquet")
+world_map <- ne_countries(scale = "medium", returnclass = "sf")
 
 climate_awareness <- climate_awareness |>
     mutate(country = case_when(
@@ -209,9 +228,6 @@ climate_awareness <- climate_awareness |>
         country == "Antigua" ~ "Antigua and Barbuda",
         TRUE ~ country
     ))
-
-climate_awareness_mapped <- climate_awareness |>
-    right_join(world_map, by = c("country" = "region"))
 
 climate_awareness
 
@@ -295,7 +311,7 @@ The first aspect that we found interesting is shown in \@ref(fig:insight1). The 
 
 world_map <- map_data("world")
 
-ggplot() +
+ex <- ggplot() +
     geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
     # hurricanes +-5 of equator are extremely rare
     geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) + 
@@ -452,6 +468,24 @@ ggplot(combined_data, aes(x = distance_to_equator_km, y = cyclone_count)) +
   theme_minimal()
 
 
+ggplot(cyclones_data %>% filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
+  geom_density_ridges(scale = 2, alpha = 0.7, color = "black", size = 0.3) +
+  labs(
+    x = "Distance from Equator (km)",
+    y = "Cyclone Category",
+    title = "Ridgeline Plot of Distance from Equator by Cyclone Category"
+  ) +
+  coord_cartesian(xlim = c(0, 6500)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_line(color = "grey80"),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10)
+  )
+
+
 
 
 
@@ -472,6 +506,8 @@ combined_data <- combined_data |>
     total_cases <= 50000000
   )
 
+combined_data
+
 ggplot(combined_data, aes(x = distance_to_equator_km, y = total_cases)) +
   geom_hex() +
   geom_smooth(method = "lm", color = "red", se = TRUE) +
@@ -485,6 +521,119 @@ ggplot(combined_data, aes(x = distance_to_equator_km, y = total_cases)) +
   theme_minimal()
 
 colnames(happiness)
+
+
+
+
+
+
+
+
+
+ggplot(combined_data, aes(x = distance_to_equator_km)) +
+  geom_histogram(binwidth = 500, fill = "steelblue", color = "black") +
+  annotate("rect", xmin = 1500, xmax = 2500, ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
+  labs(
+    title = "Histogram of Distance from Equator by COVID-19 Cases",
+    x = "Distance from Equator (km)",
+    y = "Number of Countries"
+  ) +
+  coord_cartesian(xlim = c(0, 10250)) +
+  theme_minimal()
+
+nah <- ggplot(cyclones_data, aes(x = km_distance_from_equator)) +
+  geom_histogram(binwidth = 500, fill = "steelblue", color = "black") +
+  annotate("rect", xmin = 1500, xmax = 2500, ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
+  labs(
+    title = "Histogram of Distance from Equator for All Cyclones",
+    x = "Distance from Equator (km)",
+    y = "Number of Cyclones"
+  ) +
+  coord_cartesian(xlim = c(0, 10250)) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_line(color = "grey80"),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10)
+  )
+
+
+
+ggplot(cyclones_data |> filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
+  geom_density_ridges(scale = 2, alpha = 0.7, color = "black") +
+  annotate("rect", xmin = 1500, xmax = 2500, ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
+  labs(
+    x = "Distance from Equator (km)",
+    y = "Cyclone Category",
+    title = "Ridgeline Plot of Distance from Equator by Cyclone Category"
+  ) +
+  coord_cartesian(xlim = c(0, 6500)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_line(color = "grey80"),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10)
+  )
+
+
+happiness <- happiness|>
+  left_join(
+    rnaturalearth::ne_countries(scale = "medium", returnclass = "sf") |>
+      transmute(
+        country = name_long,
+        distance_to_equator_km = geosphere::distGeo(
+          cbind(st_coordinates(st_centroid(geometry))[,1], st_coordinates(st_centroid(geometry))[,2]),
+          cbind(st_coordinates(st_centroid(geometry))[,1], 0)
+        ) / 1000  # Convert to km
+      ),
+    by = "country"
+  )
+
+happiness
+
+happiness_bands_gdp <- happiness |>
+  mutate(distance_band = cut(distance_to_equator_km.y, breaks = seq(0, 10000, by = 500), include.lowest = TRUE, labels = seq(0, 9500, by = 500))) |>
+  group_by(distance_band) |>
+  summarize(avg_log_gdp_per_capita = mean(log_gdp_per_capita, na.rm = TRUE))
+
+# Plot for log GDP per capita
+ggplot(happiness_bands_gdp, aes(x = distance_band, y = avg_log_gdp_per_capita)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  annotate("rect", xmin = "1500", xmax = "2500", ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
+  labs(
+    title = "Average GDP per Capita by Distance from Equator",
+    x = "Distance from Equator (km, Binned)",
+    y = "Average Log GDP per Capita"
+  ) +
+  scale_x_discrete(breaks = seq(0, 9500, by = 1000)) +
+  coord_cartesian(ylim = c(min(happiness_bands_gdp$avg_log_gdp_per_capita, na.rm = TRUE) - 0.1, 
+                           max(happiness_bands_gdp$avg_log_gdp_per_capita, na.rm = TRUE) + 0.1)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
+
+# Group data into 500 km distance bands and calculate average life ladder score for each band
+happiness_bands_life <- happiness |>
+  mutate(distance_band = cut(distance_to_equator_km.y, breaks = seq(0, 10000, by = 500), include.lowest = TRUE, labels = seq(0, 9500, by = 500))) %>%
+  group_by(distance_band) |>
+  summarize(avg_life_ladder = mean(life_ladder, na.rm = TRUE))
+
+# Plot for life ladder
+ggplot(happiness_bands_life, aes(x = distance_band, y = avg_life_ladder)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  annotate("rect", xmin = "1500", xmax = "2500", ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
+  labs(
+    title = "Average Life Ladder Score by Distance from Equator",
+    x = "Distance from Equator (km, Binned)",
+    y = "Average Life Ladder Score"
+  ) +
+  scale_x_discrete(breaks = seq(0, 9500, by = 1000)) +
+  coord_cartesian(ylim = c(min(happiness_bands_life$avg_life_ladder, na.rm = TRUE) - 0.1, 
+                           max(happiness_bands_life$avg_life_ladder, na.rm = TRUE) + 0.1)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
