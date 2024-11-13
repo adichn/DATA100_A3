@@ -254,6 +254,8 @@ covid_2020
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 happiness <- read_parquet("happiness.parquet")
+world_map <- map_data("world")
+
 happiness_mapped <- happiness |>
     mutate(country = case_when( #match country names to world_map
         country == "United States" ~ "United States of America",
