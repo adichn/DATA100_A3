@@ -288,15 +288,50 @@ ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected))
 
 
 ```{r}
+#Social support & life ladder
+
+data_combined <- inner_join(covid_2020, happiness, by = "country")
+
+median_social_support <- median(data_combined$social_support, na.rm = TRUE)
+
+ggplot(data_combined, aes(x = social_support, y = life_ladder, color = continent)) +
+  geom_point(alpha = 0.7, position = "jitter") + 
+  geom_smooth(method = "lm", color = "blue", se = TRUE) + 
+  geom_vline(xintercept = median_social_support, color = "red", linetype = "dashed", linewidth = 1) + 
+  labs(
+    title = "Comparison of Social Support and Life Ladder by Continent",
+    x = "Social Support",
+    y = "Life Ladder (Happiness Score)",
+    color = "Continent"
+  ) +
+  facet_wrap(~ continent) + 
+  theme_minimal() +
+  theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
 
 
-# Covid_cases & freedom to make life choices
+# Social Support & Life Expectancy
+
+
+ggplot(data_combined, aes(x = social_support, y = healthy_life_expectancy_at_birth, color = continent)) +
+  geom_point(alpha = 0.7, position = "jitter") + 
+  geom_smooth(method = "lm", color = "blue", se = TRUE) + 
+  geom_vline(xintercept = median_social_support, color = "red", linetype = "dashed", linewidth = 1) + 
+  labs(
+    title = "Comparison of Social Support and Life Expectancy by Continent",
+    x = "Social Support",
+    y = "Healthy Life Expectancy at Birth",
+    color = "Continent"
+  ) +
+  facet_wrap(~ continent) + 
+  theme_minimal() +
+  theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
+
 
 data_combined <- inner_join(covid_2020, happiness, by = "country")
 
 median_total_cases <- median(data_combined$total_cases, na.rm = TRUE)
 
-ggplot(data_combined, aes(x = total_cases, y = freedom_to_make_life_choices)) +
+ggplot(data_combined, aes(x = total_cases / 100, y = freedom_to_make_life_choices)) +
   geom_point(alpha = 0.5, position = "jitter") + 
   geom_smooth(method = "lm", color = "blue", se = TRUE) + 
   geom_vline(xintercept = median_total_cases, color = "red", linetype = "dashed", linewidth = 1) + 
@@ -309,6 +344,7 @@ ggplot(data_combined, aes(x = total_cases, y = freedom_to_make_life_choices)) +
   scale_y_log10() + 
   theme_minimal() +
   theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
+
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
