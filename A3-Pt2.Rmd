@@ -312,7 +312,6 @@ ggplot(data_combined, aes(x = social_support, y = life_ladder, color = continent
 
 # Social Support & Life Expectancy
 
-
 ggplot(data_combined, aes(x = social_support, y = healthy_life_expectancy_at_birth, color = continent)) +
   geom_point(alpha = 0.7, position = "jitter") + 
   geom_smooth(method = "lm", color = "blue", se = TRUE) + 
@@ -346,6 +345,33 @@ ggplot(data_combined, aes(x = total_cases / 100, y = freedom_to_make_life_choice
   theme_minimal() +
   theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
 
+#Life expectancy & Cyclone count
+
+
+cyclone_counts <- cyclones_data |>
+  group_by(name) |>
+  summarise(cyclone_count = n()) |>
+  rename(country = name)
+
+combined_data <- cyclone_counts |>
+  inner_join(happiness, by = "country") |>
+  select(country, cyclone_count, healthy_life_expectancy_at_birth)
+
+combined_data <- combined_data |>
+  arrange(desc(cyclone_count)) |>
+  slice(-1:-3)
+
+
+ggplot(combined_data, aes(y = cyclone_count, x = healthy_life_expectancy_at_birth)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  labs(
+    title = "Relationship Between Cyclone Count and Life Expectancy (Outlier Removed)",
+    x = "Cyclone Count",
+    y = "Healthy Life Expectancy at Birth"
+  ) +
+  theme_minimal()
+
 ```
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
@@ -372,8 +398,7 @@ cor_matrix
 
 corrplot(cor_matrix, method = "pie", order = "hclust")
 
-
-
+library(tinytex)
 ```
 
 The next insight that we found is shown in \@ref(fig:insight2).
