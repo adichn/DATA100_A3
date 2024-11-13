@@ -284,6 +284,7 @@ ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected))
 
 
 
+
 ```
 
 
@@ -352,17 +353,25 @@ This insight is supported by the summary statistics in table \@ref(tab:summary_s
 ```{r summary_stats}
 covid_2020 <- read_parquet("covid_2020.parquet")
 happiness <- read_parquet("happiness.parquet")
-
+climate_corr <- climate_awareness
 # combine the data and make a correlation matrix
 cor_matrix <- inner_join(covid_2020, happiness, by = "country") |>
+              inner_join(climate_corr, by = "country")|>
   # if not un-grounded R will add countries back into the dataframe
   ungroup()|>
-  select(where(is.numeric)) |>
+  select(where(is.numeric), -year, -aware_base) |>
+  # renamed some columns to have shorter names
+  rename(
+    corruption = perceptions_of_corruption,
+    healthy_life_expectancy = healthy_life_expectancy_at_birth,
+    freedom = freedom_to_make_life_choices
+  )|>
   cor( use = "complete.obs")|>
    round(digits = 3)
 cor_matrix
 
-corrplot(cor_matrix, method = "color", order = "hclust")
+corrplot(cor_matrix, method = "pie", order = "hclust")
+
 
 
 ```
