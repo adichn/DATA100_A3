@@ -82,14 +82,14 @@ cyclones_data <- cyclones_data |>
 
 # ________________Determine distance of cyclone to equator________________
 equator_point <- c(0, 0)
-cyclones_data <- cyclones_data %>%
+cyclones_data <- cyclones_data |>
   mutate(
     km_distance_from_equator = distGeo(cbind(long, lat), cbind(long, 0)) / 1000
   )
 
 # ________________Determine distance of cyclone to equator________________
 equator_point <- c(0, 0)
-cyclones_data <- cyclones_data %>%
+cyclones_data <- cyclones_data |>
   mutate(
     km_distance_from_equator = distGeo(cbind(long, lat), cbind(long, 0)) / 1000
   )
@@ -118,7 +118,7 @@ The preliminary step in supporting the analysis involved converting the coordina
 covid_2020 <- read_parquet("covid_2020.parquet")
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
-covid_2020 <- covid_2020 %>%
+covid_2020 <- covid_2020 |>
   mutate(country = case_when(
   country == "British Virgin Islands" ~ "British Virgin Is.",
   country == "Cape Verde" ~ "Cabo Verde",
@@ -172,17 +172,17 @@ equator <- st_sfc(st_linestring(rbind(c(-180, 0), c(180, 0))), crs = st_crs(worl
 world <- st_transform(world, crs = 3857)
 equator <- st_transform(equator, crs = 3857)
 
-world_with_distance <- world %>%
+world_with_distance <- world |>
   mutate(
     centroid = st_centroid(geometry),
     latitude = st_coordinates(centroid)[, 2],
     hemisphere = ifelse(latitude > 0, "North", "South"),
     distance_to_equator_km = as.numeric(st_distance(centroid, equator)) / 1000  # Convert to kilometers
-  ) %>%
-  select(name, hemisphere, distance_to_equator_km) %>%
+  ) |>
+  select(name, hemisphere, distance_to_equator_km) |>
   rename(country = name)
 
-covid_2020 <- covid_2020 %>%
+covid_2020 <- covid_2020 |>
   left_join(world_with_distance, by = "country")
 
 covid_2020
@@ -235,7 +235,7 @@ happiness <- happiness |>
 
 ```
 
-`happiness` dataset is global census on a countries economic, social, and political stability. 
+`happiness` dataset is global census on a countries economic, social, and political stability provided by World Happiness Report. 
 
 
 
@@ -255,7 +255,7 @@ The analysis highlighted an interesting finding, as shown in @ref(fig
 
 
 
-covid_2020_world <- covid_2020 %>%
+covid_2020_world <- covid_2020 |>
   filter(
     total_cases < 50000000 
   )
@@ -405,18 +405,18 @@ colnames(happiness)
 library(tidyverse)
 
 # Step 1: Aggregate cyclone counts by country
-cyclone_counts <- cyclones_data %>%
-  group_by(country) %>%
+cyclone_counts <- cyclones_data |>
+  group_by(country) |>
   summarise(cyclone_count = n()) 
 
 # Step 2: Join with happiness data on 'country' to add distance from the equator
-combined_data <- cyclone_counts %>%
-  inner_join(happiness, by = "country") %>%
+combined_data <- cyclone_counts |>
+  inner_join(happiness, by = "country") |>
   select(country, cyclone_count, distance_to_equator_km)
 
 # Step 3: Remove the top 3 highest cyclone counts
-combined_data <- combined_data %>%
-  arrange(desc(cyclone_count)) %>%
+combined_data <- combined_data |>
+  arrange(desc(cyclone_count)) |>
   slice(-1:-3)
 
 # Step 4: Plot the relationship between distance to equator and cyclone count
@@ -431,7 +431,7 @@ ggplot(combined_data, aes(x = distance_to_equator_km, y = cyclone_count)) +
   theme_minimal()
 
 
-ggplot(cyclones_data %>% filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
+ggplot(cyclones_data |> filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
   geom_density_ridges(scale = 2, alpha = 0.7, color = "black", size = 0.3) +
   labs(
     x = "Distance from Equator (km)",
@@ -511,7 +511,7 @@ ggplot(happiness_bands_gdp, aes(x = distance_band, y = avg_log_gdp_per_capita)) 
 
 # Group data into 500 km distance bands and calculate average life ladder score for each band
 happiness_bands_life <- happiness |>
-  mutate(distance_band = cut(distance_to_equator_km.y, breaks = seq(0, 10000, by = 500), include.lowest = TRUE, labels = seq(0, 9500, by = 500))) %>%
+  mutate(distance_band = cut(distance_to_equator_km.y, breaks = seq(0, 10000, by = 500), include.lowest = TRUE, labels = seq(0, 9500, by = 500))) |>
   group_by(distance_band) |>
   summarize(avg_life_ladder = mean(life_ladder, na.rm = TRUE))
 
