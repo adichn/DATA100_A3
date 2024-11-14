@@ -189,7 +189,7 @@ covid_2020
 
 ```
 
-The `covid_2020` data set, provided by xxxxxx contains a comprehensive list of the total reported cases of COVID-19 cases across many countries and continents in 2020. To aid in the analysis `rnaturalearth` and `geolocation` was used to find the hemisphere and distance to the equator in kilometers.
+The `covid_2020` data set, provided by Our World in Data contains a comprehensive list of the total reported cases of COVID-19 cases across many countries and continents in 2020. To aid in the analysis `rnaturalearth` and `geolocation` was used to find the hemisphere and distance to the equator in kilometers.
 
 ## \<\<World Happiness Census\>\>
 
