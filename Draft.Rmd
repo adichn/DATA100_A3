@@ -48,8 +48,10 @@ Note that all of the code is *hidden* by default. This file will be graded based
 
 You will only submit the PDF version of this document. To knit to PDF, you'll need to run `install.packages("tinytex")` in the console, followed by `tinytex::install_tinytex()` (DO NOT PUT THESE COMMANDS IN AN RMD FILE!!!). If you encounter errors in "Knit to PDF", you can "knit to html" and then print the html file to PDF using your operating system's PDF view (e.g. Adobe Acrobat). Only standalone PDF files will be accepted by MyLS.
 
-# Abstract
+# Purpose
+This study aims to 
 
+# Abstract
 
 
 # Introduction
@@ -65,7 +67,6 @@ By the end of this report, we will have shown ...
 # Data Description
 
 ## \<\<Cyclones Data\>\>
-
 ```{r load_data1}
 cyclones_data <- read_parquet("cyclones_data.parquet")
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -95,15 +96,20 @@ cyclones_data <- cyclones_data %>%
 
 # ________________Convert long and lat points to countries________________
 cyclones_data <- st_as_sf(cyclones_data, coords = c("long", "lat"), crs = 4326, remove = FALSE) |>
-  st_join(world["name"], left = TRUE)
+  st_join(world["name"], left = TRUE) |>
+  rename(country = name)
 
-cyclones_data
+# ________________Create cyclone_cleaned with specified columns________________
+cyclone_cleaned <- cyclones_data |>
+    select(country, lat, long, category, km_distance_from_equator)
+
+cyclone_cleaned
 
 ```
 
 The data set `cyclone_data` provided by the National Hurricane Center and the Central Pacific Hurricane Center records hurricane entries in the Atlantic and North Pacific basins from 1851 to 2022 and 1949 to 2022, respectively. The data frame includes detailed time stamps, coordinates, and categories, which are vital for analysis.
 
-The preliminary step in supporting the analysis involved converting the coordinates into the Cartesian coordinate system. Next, we used the `rnaturalearth` package and `geolocation` to convert the coordinates into country identifiers and determine each storm's distance from the equator. As shown in Figure 1 in the appendix, cyclones are now distributed across the North Atlantic and Northeast Pacific basins.
+The preliminary step in supporting the analysis involved converting the coordinates into the Cartesian coordinate system. Next, we used the `rnaturalearth` package and `geolocation` to convert the coordinates into country identifiers and determine each storm's distance in kilometers from the equator. As shown in Figure 1 in the appendix, cyclones are now accurately distributed across the North Atlantic and Northeast Pacific basins with the correct identifiers.
 
 
 ## \<\<World Covid 2020\>\>
@@ -183,6 +189,7 @@ covid_2020
 
 ```
 
+The `covid_2020` data set, provided by xxxxxx contains a comprehensive list of the total reported cases of COVID-19 cases across many countries and continents in 2020. To aid in the analysis `rnaturalearth` and `geolocation` was used to find the hemisphere and distance to the equator in kilometers.
 
 ## \<\<World Happiness Census\>\>
 
@@ -228,18 +235,20 @@ happiness <- happiness |>
 
 ```
 
+`happiness` dataset is global census on a countries economic, social, and political stability. 
+
+
+
 ## Combining the Data
 
 Explain how any combinations of data were performed. Explain what kind of join was needed, whether columns had to be modified (for example, matching "country" names.)
 
 # Exploratory Data Analysis
 
-To achieve our goals, we explored the data by...
-
-We explored many aspects of the data, but will demonstrate three. These are \<\<Social Support VS Life Expectancy\>\>, \<\<Perception of Corruption VS Covid Cases\>\>, and \<<Freedom to Make Life Choices & Climate Awareness (OR DISTANCE VS COVID)>\>
+We explored many aspects of the data, but will demonstrate three. These are \<\<Geographic and environmental Factors VS a countries overall well being\>\>, \<\<Covid Cases Vs perception of corruption\>\>, and \<<Freedom to Make Life Choices & Climate Awareness (OR DISTANCE VS COVID)>\>
 
 The analysis highlighted an interesting finding, as shown in @ref(fig
-): a significant concentration of COVID-19 cases appears within the 1500-2500 km range from the equator, suggesting a strong relationship between COVID-19 cases and cyclone activity within a margin of approximately 9 degrees of longitude.
+): a significant concentration of COVID-19 cases appears within the 1500-2500 km range from the equator, suggesting a strong relationship between COVID-19 cases and cyclone activity within a margin of approximately 9 degrees of longitude. This area also highlights a geographical strip pointing to a genreal trend of lower GDP, government stability, and overall happiness.  
 
 ```{r insight1, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
 
@@ -293,7 +302,7 @@ ggplot(cyclones_data |> filter(!is.na(category)), aes(x = km_distance_from_equat
 
 ```
 
-A report conducted by the National Librarbty of Medicine [1](https://pmc.ncbi.nlm.nih.gov/articles/PMC8079387/) highlights a strong correlation between COVID-19 cases and proximity to the equator, suggesting that certain geographic and environmental factors may influence virus spread and outbreak. This observation signifies a trend where regions near the equator are subject to unique vulnerabilities, not only experiencing increased COVID-19 cases but also facing intensified cyclone activity (as shown in the figure above), volcanic activity, elevated ocean currents, seasonal flooding, and the presence of natural carbon sinks.
+A report conducted by the [National Librarbty of Medicine](https://pmc.ncbi.nlm.nih.gov/articles/PMC8079387/) highlights a strong correlation between COVID-19 cases and proximity to the equator, suggesting that certain geographic and environmental factors may influence virus spread and outbreak. This observation signifies a trend where regions near the equator are subject to unique vulnerabilities, not only experiencing increased COVID-19 cases but also facing intensified cyclone activity (as shown in the figure above), volcanic activity, elevated ocean currents, seasonal flooding, and the presence of natural carbon sinks.
 
 Applying this insight into the analysis, it is evident that there are strong correlations to geological crises such as cyclones and COVID-19, and key indicators like GDP, life satisfaction, social support, and the overall well-being of countries.These crises profoundly impact not only economic stability but also the social and health of a nation, as evidenced by happiness levels in Figure 5 of the appendix. This reinforces the insight that crisis have a strong effect on the affected regions economic and social dynamics. 
 
@@ -358,9 +367,8 @@ ggplot(data_combined, aes(x = total_cases / 100, y = freedom_to_make_life_choice
 
 
 cyclone_counts <- cyclones_data |>
-  group_by(name) |>
-  summarise(cyclone_count = n()) |>
-  rename(country = name)
+  group_by(country) |>
+  summarise(cyclone_count = n()) 
 
 combined_data <- cyclone_counts |>
   inner_join(happiness, by = "country") |>
@@ -398,9 +406,8 @@ library(tidyverse)
 
 # Step 1: Aggregate cyclone counts by country
 cyclone_counts <- cyclones_data %>%
-  group_by(name) %>%
-  summarise(cyclone_count = n()) %>%
-  rename(country = name)
+  group_by(country) %>%
+  summarise(cyclone_count = n()) 
 
 # Step 2: Join with happiness data on 'country' to add distance from the equator
 combined_data <- cyclone_counts %>%
