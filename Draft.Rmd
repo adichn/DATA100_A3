@@ -13,7 +13,7 @@ List your group members, including their student numbers, here:
 - Andy Ferrer Lorenzo (169081356)
 - Oscar Saul (169057882)
 - Taras Zakydalsky (169099616)
-- Ezra Furman (#########)
+- Dibuhang Rai (169708451)
 >>>>>>> 5f7fee6584554860c6964f24cabaeb60755a72fe
 
 You **must** be in a group in MyLS in order to see the DropBox used for submission. Even if you're alone, you must join a group by yourself.
