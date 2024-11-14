@@ -7,14 +7,13 @@ output: pdf_document
 
 List your group members, including their student numbers, here:
 
-<<<<<<< HEAD
 
 - Aditya Chauhan (169027493)
 - Andy Ferrer Lorenzo (169081356)
 - Oscar Saul (169057882)
 - Taras Zakydalsky (169099616)
 - Dibuhang Rai (169708451)
->>>>>>> 5f7fee6584554860c6964f24cabaeb60755a72fe
+
 
 You **must** be in a group in MyLS in order to see the DropBox used for submission. Even if you're alone, you must join a group by yourself.
 
@@ -533,12 +532,25 @@ ggplot(happiness_bands_life, aes(x = distance_band, y = avg_life_ladder)) +
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
 
-<<<<<<< HEAD
-
 
 
 The next insight that we found is shown in \@ref(fig:insight2).
 
+```{r insight3, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+
+covid_happiness <- inner_join(covid_2020_world, happiness, by = "country")
+
+filter_covid_happiness <- covid_happiness |> filter(!is.na(total_cases), !is.na(perceptions_of_corruption))
+
+ratio_covid_happiness <- filter_covid_happiness |> group_by(country) |>
+  mutate(
+    ratio = total_cases * perceptions_of_corruption
+  )
+
+covid_happiness |> filter(!is.na(total_cases), !is.na(perceptions_of_corruption)) |>
+  ggplot(mapping = aes(x = perceptions_of_corruption, y = total_cases, color = continent)) + geom_boxplot() + facet_wrap(~continent) + labs(title = "Perception of Corruption and COVID cases by continent", subtitle = "Weight of COVID cases repective to perception of corruption", x = "Perception of Corruption (0 - 1)", y = "Total Cases", caption = "Source: covid.ourworldindata.org\nworldhappiness.report") + theme_minimal() + theme(legend.position = "None")
+
+```
 
 Finally, \@ref(fig:insight3) shows ...
 
