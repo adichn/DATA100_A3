@@ -245,9 +245,9 @@ Explain how any combinations of data were performed. Explain what kind of join w
 
 We explored many aspects of the data, but will demonstrate three. These are \<\<Geographic and environmental Factors VS a countries overall well being\>\>, \<\<Covid Cases Vs perception of corruption\>\>, and \<\<Freedom to Make Life Choices & Climate Awareness (OR DISTANCE VS COVID)\>\>
 
-The analysis highlighted an interesting finding, as shown in @ref(fig ): a significant concentration of COVID-19 cases appears within the 1500-2500 km range from the equator, suggesting a strong relationship between COVID-19 cases and cyclone activity within a margin of approximately 9 degrees of longitude. This area also highlights a geographical strip pointing to a genreal trend of lower GDP, government stability, and overall happiness.
+The analysis highlighted an interesting finding, as shown in \@ref(fig:insight1): a significant concentration of COVID-19 cases appears within the 1500-2500 km range from the equator, suggesting a strong relationship between COVID-19 cases and cyclone activity within a margin of approximately 9 degrees of longitude. This area also highlights a geographical strip pointing to a genreal trend of lower GDP, government stability, and overall happiness.
 
-```{r insight1, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+```{r insight1, fig.cap=""}
 
 
 
@@ -303,7 +303,7 @@ A report conducted by the [National Librarbty of Medicine](https://pmc.ncbi.nlm.
 
 Applying this insight into the analysis, it is evident that there are strong correlations to geological crises such as cyclones and COVID-19, and key indicators like GDP, life satisfaction, social support, and the overall well-being of countries.These crises profoundly impact not only economic stability but also the social and health of a nation, as evidenced by happiness levels in Figure 5 of the appendix. This reinforces the insight that crisis have a strong effect on the affected regions economic and social dynamics.
 
-```{r}
+```{r insight2, fig.cap=""}
 #Social support & life ladder
 
 data_combined <- inner_join(covid_2020, happiness, by = "country")
