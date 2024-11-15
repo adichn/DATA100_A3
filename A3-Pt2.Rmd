@@ -1,20 +1,19 @@
 ---
-title: "TITLE OF YOUR PROJECT"
+title: "Analysis of Global Crises and Their Impact on Interational Well-Being"
 author: "Group 8"
-date: "November 12th, 2024"
+date: "November 12, 2024"
 output: pdf_document
 ---
 
 List your group members, including their student numbers, here:
 
-<<<<<<< HEAD
 
 - Aditya Chauhan (169027493)
 - Andy Ferrer Lorenzo (169081356)
 - Oscar Saul (169057882)
 - Taras Zakydalsky (169099616)
-- Ezra Furman (#########)
->>>>>>> 5f7fee6584554860c6964f24cabaeb60755a72fe
+- Dibuhang Rai (169708451)
+
 
 You **must** be in a group in MyLS in order to see the DropBox used for submission. Even if you're alone, you must join a group by yourself.
 
@@ -36,41 +35,32 @@ library(corrplot)
 library(scales)
 library(geosphere)
 library(ggridges)
+library(gtsummary)
+library(gapminder)
+library(glue)
 ```
 
-# Instructions
-
-You are encouraged to remove this instruction section prior to submission.
-
-It is recommended that you follow the structure of this template. The text is all placeholder - you are free to change any/all wording as you please, but it is very helpful for the grading process if you keep the same structure. Anything in \<<double angle brackets>\> definitely needs to be changed, but you are free to change any/all sentences!
-
-Note that all of the code is *hidden* by default. This file will be graded based on the insights, not the code.
-
-You will only submit the PDF version of this document. To knit to PDF, you'll need to run `install.packages("tinytex")` in the console, followed by `tinytex::install_tinytex()` (DO NOT PUT THESE COMMANDS IN AN RMD FILE!!!). If you encounter errors in "Knit to PDF", you can "knit to html" and then print the html file to PDF using your operating system's PDF view (e.g. Adobe Acrobat). Only standalone PDF files will be accepted by MyLS.
+# Purpose
+This study aims to investigate the relationship between freedom of citizens (i.e. freedom of choices, a just government) and quality of life for citizens. The more freedom for citizens allows for better quality of life.
 
 # Abstract
 
-
+This paper will aim to show as freedom of citizens increase and citizen's quality of life improves. The relationship we look for is a positive correlation. First, for the first insight, we explore the relationship of cyclone frequencies and geological location. Cyclones of higher category appear more frequently near the equator (~2000 km from the equator), more freedom allows for an individual to choose where they can locate themselves and those who choose to live farther away from the equator may feel less burdened by constant cyclones. Second, a more just government allows for a citizen to live with more freedom, from th second insight, "perception of corruption" for a government and "COVID cases" shows us for some continents, there are lower cases of COVID when the government is perceived to be fair. Though there also exists a negative correlation, where continents (i.e. Asia) with more corrupt ruling powers have lower total count of COVID cases. Third, again back to the notion of choosing where to live, from the third insight, we observe average GDP in relation to distance from the equator. Areas farther from the equator tend to have higher on average higher GDP than those closer to the equator. We now show evidence to further support our original purpose. That freedom of citizens in fact impacts the quality of life for citizens.
 
 # Introduction
 
-Climate change is something that has been studied. Here's some relevant information about the context of our study.
+Quality of life determines happiness which is impacted by many factors. Some important factors are environmental and socioeconomic factors. Environmentally we must keep in mind location, since different countries in different continents vary in climate, geographic identity, etc. Whilst socioeconomically, different countries have different forms of government, culture.
 
-If needed, this paragraph is more information about the context.
+In this report, we will explore the geographical aspect and governance aspect of freedom and what do these factors impact on an individual's daily life through exploring and digesting our data. We will explore data; COVID cases during the year 2020, cyclones from NOAA (National Oceanic and Atmospheric Administration), happiness data from (World Happiness Report). We apply uni-variate and bi-variate analysis, specifically for the bard chart and ridge line graph we care about the frequency (weight) of our independent variables, for the scatter plot to determine the relationship between our variable x and y is applying bivariate analysis.
 
-In this report, we are going to explore some aspects climate change and the impact and/or perceptions of it by using exploratory techniques. We'll explore \<<general description of data>\> using \<<general description of techniques>\>.
-
-By the end of this report, we will have shown ...
+By the end of the report, we will have shown in general that as freedom increases for citizens and individuals, so to does quality of life. 
 
 # Data Description
 
-## \<\<Cyclones + Climate Awareness\>\>
+## \<\<Cyclones Data\>\>
 
-```{r load_data1}
-# Put in your code to load in the data set, along with any
-# necessary cleaning beyond what was done in Part 1
+```{r cyclones_data}
 cyclones_data <- read_parquet("cyclones_data.parquet")
-climate_awareness <- read_parquet("climate_awareness.parquet")
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 # ________________Map long and lat to scale________________
@@ -84,142 +74,117 @@ cyclones_data <- cyclones_data |>
 
 # ________________Determine distance of cyclone to equator________________
 equator_point <- c(0, 0)
-cyclones_data <- cyclones_data %>%
+cyclones_data <- cyclones_data |>
   mutate(
     km_distance_from_equator = distGeo(cbind(long, lat), cbind(long, 0)) / 1000
   )
 
 # ________________Determine distance of cyclone to equator________________
 equator_point <- c(0, 0)
-cyclones_data <- cyclones_data %>%
+cyclones_data <- cyclones_data |>
   mutate(
     km_distance_from_equator = distGeo(cbind(long, lat), cbind(long, 0)) / 1000
   )
 
 # ________________Convert long and lat points to countries________________
 cyclones_data <- st_as_sf(cyclones_data, coords = c("long", "lat"), crs = 4326, remove = FALSE) |>
-  st_join(world["name"], left = TRUE)
+  st_join(world["name"], left = TRUE) |>
+  rename(country = name)
 
+# ________________Create cyclone_cleaned with specified columns________________
+cyclone_cleaned <- cyclones_data |>
+    select(country, lat, long, category, km_distance_from_equator)
 
+cyclone_cleaned
 
-# ________________Find countries without storm points________________
-countries_with_cyclone <- cyclones_data |>
-  filter(!is.na(name)) |>
-    group_by(name) |>
-      summarise(count = n()) |>
-        rename(country = name)
-
-countries_without_cyclone <- world |>
-  st_drop_geometry() |>
-  select(name) |>
-  rename(country = name) |>
-  anti_join(countries_with_cyclone, by = "country")
-
-cyclone_affected <- climate_awareness |>
-  inner_join(countries_with_cyclone, by = "country") |>
-  rename(cyclone_count = count) |>
-  mutate(affected = "Affected")
-
-cyclone_unaffected <- climate_awareness |>
-  anti_join(countries_with_cyclone, by = "country") |>
-  mutate(affected = "Unaffected")
-
-# ________________Weight awareness data to countries with more storms________________
-
-weighted_cyclone_affected <- cyclone_affected |>
-  summarise(
-    aware_no = sum(aware_no * cyclone_count) / sum(cyclone_count),
-    aware_alittle = sum(aware_alittle * cyclone_count) / sum(cyclone_count),
-    aware_moderate = sum(aware_moderate * cyclone_count) / sum(cyclone_count),
-    aware_alot = sum(aware_alot * cyclone_count) / sum(cyclone_count),
-    aware_refuse = sum(aware_refuse * cyclone_count) / sum(cyclone_count)
-  )
-
-world_cyclone <- bind_rows(
-  weighted_cyclone_affected |>
-    mutate(affected = "Affected"),
-  cyclone_unaffected |>
-    summarise(across(where(is.numeric), mean, na.rm = TRUE)) |>
-    select(-(aware_base)) |>
-    mutate(affected = "Unaffected")
-
-)
-
-
-world_cyclone_long <- world_cyclone |>
-  pivot_longer(cols = c(aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse), 
-               names_to = "awareness_level", values_to = "value") |>
-  mutate(awareness_level = factor(awareness_level, 
-                                  levels = c("aware_alot", "aware_moderate", "aware_alittle", "aware_no", "aware_refuse"),
-                                  labels = c("Aware", "Moderately Aware", "Aware a Little", "Not Aware", "Refuse")))
-
-
-# Note that the code in this document will not be shown
-# when you click "knit", so the placement of this code
-# chunk is purely for your benefit: You can see what happened
-# with your data, which makes it easier to describe below!
 ```
 
+The data set `cyclone_data` provided by the National Hurricane Center and the Central Pacific Hurricane Center records hurricane entries in the Atlantic and North Pacific basins from 1851 to 2022 and 1949 to 2022, respectively. The data frame includes detailed time stamps, coordinates, and categories, which are vital for analysis.
 
-The data come from \<<place>\> and detail \<<more specific description of the data>\>.
+The preliminary step in supporting the analysis involved converting the coordinates into the Cartesian coordinate system. Next, we used the `rnaturalearth` package and `geolocation` to convert the coordinates into country identifiers and determine each storm's distance in kilometers from the equator. As shown in Figure 1 in the appendix, cyclones are now accurately distributed across the North Atlantic and Northeast Pacific basins with the correct identifiers.
 
-In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>
+## \<\<World Covid 2020\>\>
 
-## \<\<Data Set 3\>\>
+```{r load_data2}
+covid_2020 <- read_parquet("covid_2020.parquet")
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+covid_2020 <- covid_2020 |>
+  mutate(country = case_when(
+  country == "British Virgin Islands" ~ "British Virgin Is.",
+  country == "Cape Verde" ~ "Cabo Verde",
+  country == "Cayman Islands" ~ "Cayman Is.",
+  country == "Central African Republic" ~ "Central African Rep.",
+  country == "Cook Islands" ~ "Cook Is.",
+  country == "Cote d'Ivoire" ~ "Ivory Coast",
+  country == "Democratic Republic of Congo" ~ "Congo",
+  country == "Cyprus" ~ "Cyprus",
+  country == "Dominican Republic" ~ "Dominican Rep.",
+  country == "East Timor" ~ "Timor-Leste",
+  country == "England" ~ "United Kingdom",
+  country == "Equatorial Guinea" ~ "Equat. Guinea",
+  country == "Eswatini" ~ "Swaziland",
+  country == "Falkland Islands" ~ "Falkland Isles",
+  country == "Faroe Islands" ~ "Faroe Isles",
+  country == "French Guiana" ~ "Fr. Guiana",
+  country == "French Polynesia" ~ "Fr. Polynesia",
+  country == "Gibraltar" ~ "Gibraltar",
+  country == "Guadeloupe" ~ "Guadeloupe",
+  country == "Marshall Islands" ~ "Marshall Is.",
+  country == "Martinique" ~ "Martinique",
+  country == "Mayotte" ~ "Mayotte",
+  country == "Micronesia (country)" ~ "Micronesia",
+  country == "Northern Ireland" ~ "Northern Ireland",
+  country == "Northern Mariana Islands" ~ "N. Mariana Is.",
+  country == "Pitcairn Islands" ~ "Pitcairn",
+  country == "Reunion" ~ "Réunion",
+  country == "Saint Barthelemy" ~ "Saint-Barthélemy",
+  country == "Saint Kitts and Nevis" ~ "St Kitts & Nevis",
+  country == "Saint Martin (French part)" ~ "Saint Martin",
+  country == "Saint Pierre and Miquelon" ~ "St Pierre & Miquelon",
+  country == "Saint Vincent and the Grenadines" ~ "St Vincent & Gren.",
+  country == "Sao Tome and Principe" ~ "São Tomé",
+  country == "Scotland" ~ "Scotland",
+  country == "Sint Maarten (Dutch part)" ~ "Sint Maarten",
+  country == "Solomon Islands" ~ "Solomon Is.",
+  country == "South Sudan" ~ "S. Sudan",
+  country == "Tokelau" ~ "Tokelau",
+  country == "Turks and Caicos Islands" ~ "Turks & Caicos",
+  country == "United States Virgin Islands" ~ "US Virgin Is.",
+  country == "Wales" ~ "Wales",
+  country == "Wallis and Futuna" ~ "Wallis & Futuna",
+  country == "United States" ~ "United States of America",
+  TRUE ~ country  
+))
+
+
+
+equator <- st_sfc(st_linestring(rbind(c(-180, 0), c(180, 0))), crs = st_crs(world))
+world <- st_transform(world, crs = 3857)
+equator <- st_transform(equator, crs = 3857)
+
+world_with_distance <- world |>
+  mutate(
+    centroid = st_centroid(geometry),
+    latitude = st_coordinates(centroid)[, 2],
+    hemisphere = ifelse(latitude > 0, "North", "South"),
+    distance_to_equator_km = as.numeric(st_distance(centroid, equator)) / 1000  # Convert to kilometers
+  ) |>
+  select(name, hemisphere, distance_to_equator_km) |>
+  rename(country = name)
+
+covid_2020 <- covid_2020 |>
+  left_join(world_with_distance, by = "country")
+
+covid_2020
+
+```
+
+The `covid_2020` data set, provided by Our World in Data contains a comprehensive list of the total reported cases of COVID-19 cases across many countries and continents in 2020. To aid in the analysis `rnaturalearth` and `geolocation` was used to find the hemisphere and distance to the equator in kilometers.
+
+## \<\<World Happiness Census\>\>
 
 ```{r load_data3}
-# Put in your code to load in the data set, along with any
-# necessary cleaning beyond what was done in Part 1
-climate_awareness <- read_parquet("climate_awareness.parquet")
-world_map <- ne_countries(scale = "medium", returnclass = "sf")
-
-climate_awareness <- climate_awareness |>
-    mutate(country = case_when(
-        country == "United.States" ~ "United States of America",
-        country == "United.Kingdom" ~ "UK",
-        country == "United.Arab.Emirates" ~ "UAE",
-        country == "Trinidad.and.Tobago" ~ "Trinidad",
-        country == "Sri.Lanka" ~ "Sri Lanka",
-        country == "Bolivia.(Plurinational.State.of)" ~ "Bolivia",
-        country == "Bosnia.and.Herzegovina" ~ "Bosnia",
-        country == "Congo.(Democratic.Republic.of.the)" ~ "Congo",
-        country == "Costa.Rica" ~ "Costa Rica",
-        country == "Cote.d'Ivoire" ~ "Ivory Coast",
-        country == "Czechia" ~ "Czech Republic",
-        country == "Dominican.Republic" ~ "Dominican Republic",
-        country == "El.Salvador" ~ "El Salvador",
-        country == "Hong.Kong" ~ "Hong Kong",
-        country == "Lao.People's.Democratic.Republic" ~ "Laos",
-        country == "New.Zealand" ~ "New Zealand",
-        country == "Puerto.Rico" ~ "Puerto Rico",
-        country == "North.MAcedonia" ~ "Macedonia",
-        country == "Saudi.Arabia" ~ "Saudi Arabia",
-        country == "South.Africa" ~ "South Africa",
-        country == "South.Korea" ~ "South Korea",
-        country == "Antigua" ~ "Antigua and Barbuda",
-        TRUE ~ country
-    ))
-
-
-
-
-```
-
-The data come from \<<place>\> and detail \<<more specific description of the data>\>.
-
-In order to clean the data, we \<\<steps to clean the data, concise but precise enough that a reader could follow your steps without seeing your code\>\>
-
-## \<\<Data Set 4\>\>
-
-```{r load_data4}
-# Put in your code to load in the data set, along with any
-# necessary cleaning beyond what was done in Part 1
-covid_2020 <- read_parquet("covid_2020.parquet")
-```
-
-## \<\<Data Set 5\>\>
-
-```{r load_data5}
 # Put in your code to load in the data set, along with any
 # necessary cleaning beyond what was done in Part 1
 happiness <- read_parquet("happiness.parquet")
@@ -261,294 +226,79 @@ happiness <- happiness |>
 
 ```
 
+The `happiness` data set is global census on a countries economic, social, and political stability provided by World Happiness Report. From part 1, extra steps were applied to clean the data set. Some steps taken are renaming countries to allow for easy joining of data sets (happiness dataset and world map). For this case only specific columns were needed and hence selected specific columns.
+
 ## Combining the Data
 
-Explain how any combinations of data were performed. Explain what kind of join was needed, whether columns had to be modified (for example, matching "country" names.)
+For the first data set, Cyclones data "sf_join" was used to create geographical data for a map for distances of cyclones from the equator (this was not used but is in the appendix). Only necessary columns were selected from the data set.
+For the second data set, World data was used from 'rnaturalearth' package. First countries were renamed to allow for easier joining of data sets. New columns were created for the world map to be created. Then the data set is combined with COVID_2020 by country.
+For the third data set, country names were changed for easier merge. Then applying "right_join" to keep the data from world_map and combine with happiness report data. This again is combined with world data, this time applying "left_join" to keep the data from happiness data and combine with world data.
 
 # Exploratory Data Analysis
 
-To achieve our goals, we explored the data by...
+We explored many aspects of the data, but will demonstrate three. These are \<\<Geographic and environmental Factors VS a countries overall well being\>\>, \<\<Covid Cases Vs perception of corruption\>\>, and \<<Life ladder and GDP vs Distance from Equator>\>
 
-We explored many aspects of the data, but will demonstrate three. These are \<\<Social Support VS Life Expectancy\>\>, \<\<Perception of Corruption VS Covid Cases\>\>, and \<<Freedom to Make Life Choices & Climate Awareness (OR DISTANCE VS COVID)>\>
+The analysis highlighted an interesting finding, as shown in \@ref(fig:insight1): a significant concentration of COVID-19 cases appears within the 1500-2500 km range from the equator, suggesting a strong relationship between COVID-19 cases and cyclone activity within a margin of approximately 9 degrees of longitude. This area also highlights a geographical strip pointing to a general trend of lower GDP, government stability, and overall happiness.  
 
-The first aspect that we found interesting is shown in \@ref(fig:insight1). The insight should be specific to the data shown, not a general statement beyond the data (leave that for the conclusion).
+```{r insight1, fig.cap="Cyclone catergory frequency by distance from equator"}
 
-```{r insight1, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
-# This is an example of how you can control figures and captions in
-# an R chunk. Note that you can reference figures using:
-# \@ref(fig:insight1), where "insight1" is the label of this code
-# chunk (the first bit of text after the "r" in "```{r label, options...}")
-
-world_map <- map_data("world")
-
-ex <- ggplot() +
-    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
-    # hurricanes +-5 of equator are extremely rare
-    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) + 
-    geom_hex(data = cyclones_data, aes(x = long, y = lat, fill = category), bins = 50, alpha = 0.7) +
-    scale_fill_viridis_d(name = "Storm Category") +
-    labs(
-        title = "North Atlantic and Northeast Pacific Cyclones by Category",
-        x = "Longitude",
-        y = "Latitude"
-    ) +
-    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
-    scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
-    theme_minimal() 
-
-ggplot(world_cyclone_long, aes(x = awareness_level, y = value, fill = affected)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Awareness Category", y = "% Awareness Level", fill = "Cyclone Impact",
-       title = "Comparison of Awareness Levels Between Cyclone-Affected and Unaffected") +
-  theme_minimal()
-
-
-
-
-
+ggplot(cyclones_data |> filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
+  geom_density_ridges(scale = 2, alpha = 0.7, color = "black") +
+  geom_vline(xintercept = 1500, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 2500, linetype = "dashed", color = "black") +
+  labs(
+    x = "Distance from Equator (km)",
+    y = "Cyclone Category",
+    title = "Ridgeline Plot of Distance from Equator by Cyclone Category"
+  ) +
+  coord_cartesian(xlim = c(0, 6500)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_line(color = "grey80"),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10)
+  )
 
 
 ```
 
+A report conducted by the [National Library of Medicine](https://pmc.ncbi.nlm.nih.gov/articles/PMC8079387/) highlights a strong correlation between COVID-19 cases and proximity to the equator, suggesting that certain geographic and environmental factors may influence virus spread and outbreak. This observation signifies a trend where regions near the equator are subject to unique vulnerabilities, not only experiencing increased COVID-19 cases but also facing intensified cyclone activity (as shown in the figure above), volcanic activity, elevated ocean currents, seasonal flooding, and the presence of natural carbon sinks.
 
-```{r}
-#Social support & life ladder
+Applying this insight into the analysis, it is evident that there are strong correlations to geological crises such as cyclones and COVID-19, and key indicators like GDP, life satisfaction, social support, and the overall well-being of countries.These crises profoundly impact not only economic stability but also the social and health of a nation, as evidenced by happiness levels in Figure 5 of the appendix. This reinforces the insight that crisis have a strong effect on the affected regions economic and social dynamics. 
 
-data_combined <- inner_join(covid_2020, happiness, by = "country")
+The next insight that we found is shown in \@ref(fig:insight2).
 
-median_social_support <- median(data_combined$social_support, na.rm = TRUE)
+```{r insight2, fig.height=4, fig.width=6, fig.cap="Covid cases by perception of corruption"}
 
-ggplot(data_combined, aes(x = social_support, y = life_ladder, color = continent)) +
-  geom_point(alpha = 0.7, position = "jitter") + 
-  geom_smooth(method = "lm", color = "blue", se = TRUE) + 
-  geom_vline(xintercept = median_social_support, color = "red", linetype = "dashed", linewidth = 1) + 
-  labs(
-    title = "Comparison of Social Support and Life Ladder by Continent",
-    x = "Social Support",
-    y = "Life Ladder (Happiness Score)",
-    color = "Continent"
-  ) +
-  facet_wrap(~ continent) + 
-  theme_minimal() +
-  theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
+covid_happiness <- inner_join(covid_2020, happiness, by = "country")
 
+filter_covid_happiness <- covid_happiness |> filter(!is.na(total_cases), !is.na(perceptions_of_corruption))
 
-# Social Support & Life Expectancy
-
-ggplot(data_combined, aes(x = social_support, y = healthy_life_expectancy_at_birth, color = continent)) +
-  geom_point(alpha = 0.7, position = "jitter") + 
-  geom_smooth(method = "lm", color = "blue", se = TRUE) + 
-  geom_vline(xintercept = median_social_support, color = "red", linetype = "dashed", linewidth = 1) + 
-  labs(
-    title = "Comparison of Social Support and Life Expectancy by Continent",
-    x = "Social Support",
-    y = "Healthy Life Expectancy at Birth",
-    color = "Continent"
-  ) +
-  facet_wrap(~ continent) + 
-  theme_minimal() +
-  theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
-
-
-data_combined <- inner_join(covid_2020, happiness, by = "country")
-
-median_total_cases <- median(data_combined$total_cases, na.rm = TRUE)
-
-ggplot(data_combined, aes(x = total_cases / 100, y = freedom_to_make_life_choices)) +
-  geom_point(alpha = 0.5, position = "jitter") + 
-  geom_smooth(method = "lm", color = "blue", se = TRUE) + 
-  geom_vline(xintercept = median_total_cases, color = "red", linetype = "dashed", linewidth = 1) + 
-  labs(
-    title = "Comparison of COVID-19 Cases and Freedom",
-    x = "Total COVID-19 Cases",
-    y = "Freedom"
-  ) +
-  scale_x_log10() +  
-  scale_y_log10() + 
-  theme_minimal() +
-  theme(panel.grid.major = element_line(color = "grey", linetype = "dashed", linewidth = 0.5))
-
-#Life expectancy & Cyclone count
-
-
-cyclone_counts <- cyclones_data |>
-  group_by(name) |>
-  summarise(cyclone_count = n()) |>
-  rename(country = name)
-
-combined_data <- cyclone_counts |>
-  inner_join(happiness, by = "country") |>
-  select(country, cyclone_count, healthy_life_expectancy_at_birth)
-
-combined_data <- combined_data |>
-  arrange(desc(cyclone_count)) |>
-  slice(-1:-3)
-
-
-ggplot(combined_data, aes(y = cyclone_count, x = healthy_life_expectancy_at_birth)) +
-  geom_point(alpha = 0.7) +
-  geom_smooth(method = "lm", se = TRUE, color = "blue") +
-  labs(
-    title = "Relationship Between Cyclone Count and Life Expectancy (Outlier Removed)",
-    x = "Cyclone Count",
-    y = "Healthy Life Expectancy at Birth"
-  ) +
-  theme_minimal()
-
-
-colnames(happiness)
-
-
-
-
-
-
-
-# distance & cyclone count
-
-
-# Load required libraries
-library(tidyverse)
-
-# Step 1: Aggregate cyclone counts by country
-cyclone_counts <- cyclones_data %>%
-  group_by(name) %>%
-  summarise(cyclone_count = n()) %>%
-  rename(country = name)
-
-# Step 2: Join with happiness data on 'country' to add distance from the equator
-combined_data <- cyclone_counts %>%
-  inner_join(happiness, by = "country") %>%
-  select(country, cyclone_count, distance_to_equator_km)
-
-# Step 3: Remove the top 3 highest cyclone counts
-combined_data <- combined_data %>%
-  arrange(desc(cyclone_count)) %>%
-  slice(-1:-3)
-
-# Step 4: Plot the relationship between distance to equator and cyclone count
-ggplot(combined_data, aes(x = distance_to_equator_km, y = cyclone_count)) +
-  geom_point(alpha = 0.7, color = "blue") +
-  geom_smooth(method = "lm", color = "red", se = TRUE) +
-  labs(
-    title = "Comparison of Cyclone Count and Distance from Equator (Top 3 Outliers Removed)",
-    x = "Distance from Equator (km)",
-    y = "Cyclone Count"
-  ) +
-  theme_minimal()
-
-
-ggplot(cyclones_data %>% filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
-  geom_density_ridges(scale = 2, alpha = 0.7, color = "black", size = 0.3) +
-  labs(
-    x = "Distance from Equator (km)",
-    y = "Cyclone Category",
-    title = "Ridgeline Plot of Distance from Equator by Cyclone Category"
-  ) +
-  coord_cartesian(xlim = c(0, 6500)) +
-  theme_minimal() +
-  theme(
-    legend.position = "none",
-    panel.grid.major = element_line(color = "grey80"),
-    panel.grid.minor = element_blank(),
-    axis.text.y = element_text(size = 10),
-    axis.text.x = element_text(size = 10)
+ratio_covid_happiness <- filter_covid_happiness |> group_by(country) |>
+  mutate(
+    ratio = total_cases * perceptions_of_corruption
   )
 
+covid_happiness |> filter(!is.na(total_cases), !is.na(perceptions_of_corruption), total_cases <= 20000000) |>
+  ggplot(mapping = aes(x = perceptions_of_corruption, y = total_cases, color = continent)) + geom_point() + geom_smooth(method = "lm", se = FALSE) + facet_wrap(~continent) + labs(title = "Perception of Corruption and COVID cases by continent", subtitle = "Weight of COVID cases respective to perception of corruption", x = "Perception of Corruption (0 - 1)", y = "Total Cases", caption = "Source: covid.ourworldindata.org\nworldhappiness.report") + theme_minimal() + theme(legend.position = "None")
 
+```
 
+This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
 
+```{r summary_stats, fig.height=4, fig.width=6,}
+insight_2_sum_stats <- covid_happiness |> group_by(continent) |> select(continent, perceptions_of_corruption, total_cases) |> 
+  tbl_summary(by = continent)
+insight_2_sum_stats
+```
 
+From [Scientific Reports (Sci Rep)](https://www.nature.com/articles/s41598-021-02802-1), the paper implies that corruption leads to lower rates of vaccination. This can result in higher counts of COVID cases. Also [Globalization and Health](https://globalizationandhealth.biomedcentral.com/articles/10.1186/s12992-023-00994-x) also accounts to how corruption can manifest due to catastrophic events such as a pandemic. Then corruption affects how we tackle on health issues and health issues also affect how corruption is procured in the globlal stage.
 
+Finally, \@ref(fig:insight3) shows ...
 
-
-# covid + distance
-
-
-combined_data <- covid_2020 |>
-  inner_join(happiness, by = "country") |>
-  select(country, total_cases, distance_to_equator_km)
-
-combined_data <- combined_data |>
-  filter(
-    !is.na(total_cases) & !is.na(distance_to_equator_km),
-    is.finite(total_cases) & is.finite(distance_to_equator_km),
-    total_cases <= 50000000
-  )
-
-combined_data
-
-ggplot(combined_data, aes(x = distance_to_equator_km, y = total_cases)) +
-  geom_hex() +
-  geom_smooth(method = "lm", color = "red", se = TRUE) +
-  labs(
-    title = "Comparison of COVID-19 Cases and Distance from Equator",
-    x = "Distance from Equator (km)",
-    y = "Total COVID-19 Cases"
-  ) +
-  scale_y_continuous(labels = comma) + 
-  scale_fill_viridis_c() + 
-  theme_minimal()
-
-colnames(happiness)
-
-
-
-
-
-
-
-
-
-ggplot(combined_data, aes(x = distance_to_equator_km)) +
-  geom_histogram(binwidth = 500, fill = "steelblue", color = "black") +
-  annotate("rect", xmin = 1500, xmax = 2500, ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
-  labs(
-    title = "Histogram of Distance from Equator by COVID-19 Cases",
-    x = "Distance from Equator (km)",
-    y = "Number of Countries"
-  ) +
-  coord_cartesian(xlim = c(0, 10250)) +
-  theme_minimal()
-
-nah <- ggplot(cyclones_data, aes(x = km_distance_from_equator)) +
-  geom_histogram(binwidth = 500, fill = "steelblue", color = "black") +
-  annotate("rect", xmin = 1500, xmax = 2500, ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
-  labs(
-    title = "Histogram of Distance from Equator for All Cyclones",
-    x = "Distance from Equator (km)",
-    y = "Number of Cyclones"
-  ) +
-  coord_cartesian(xlim = c(0, 10250)) +
-  theme_minimal() +
-  theme(
-    panel.grid.major = element_line(color = "grey80"),
-    panel.grid.minor = element_blank(),
-    axis.text.y = element_text(size = 10),
-    axis.text.x = element_text(size = 10)
-  )
-
-
-
-ggplot(cyclones_data |> filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
-  geom_density_ridges(scale = 2, alpha = 0.7, color = "black") +
-  annotate("rect", xmin = 1500, xmax = 2500, ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
-  labs(
-    x = "Distance from Equator (km)",
-    y = "Cyclone Category",
-    title = "Ridgeline Plot of Distance from Equator by Cyclone Category"
-  ) +
-  coord_cartesian(xlim = c(0, 6500)) +
-  theme_minimal() +
-  theme(
-    legend.position = "none",
-    panel.grid.major = element_line(color = "grey80"),
-    panel.grid.minor = element_blank(),
-    axis.text.y = element_text(size = 10),
-    axis.text.x = element_text(size = 10)
-  )
-
-
+```{r insight3, fig.height=4, fig.width=6, fig.cap="Average GDP by distance from equator"}
 happiness <- happiness|>
   left_join(
     rnaturalearth::ne_countries(scale = "medium", returnclass = "sf") |>
@@ -561,8 +311,6 @@ happiness <- happiness|>
       ),
     by = "country"
   )
-
-happiness
 
 happiness_bands_gdp <- happiness |>
   mutate(distance_band = cut(distance_to_equator_km.y, breaks = seq(0, 10000, by = 500), include.lowest = TRUE, labels = seq(0, 9500, by = 500))) |>
@@ -584,168 +332,23 @@ ggplot(happiness_bands_gdp, aes(x = distance_band, y = avg_log_gdp_per_capita)) 
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 
-# Group data into 500 km distance bands and calculate average life ladder score for each band
-happiness_bands_life <- happiness |>
-  mutate(distance_band = cut(distance_to_equator_km.y, breaks = seq(0, 10000, by = 500), include.lowest = TRUE, labels = seq(0, 9500, by = 500))) %>%
-  group_by(distance_band) |>
-  summarize(avg_life_ladder = mean(life_ladder, na.rm = TRUE))
-
-# Plot for life ladder
-ggplot(happiness_bands_life, aes(x = distance_band, y = avg_life_ladder)) +
-  geom_bar(stat = "identity", fill = "steelblue") +
-  annotate("rect", xmin = "1500", xmax = "2500", ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
-  labs(
-    title = "Average Life Ladder Score by Distance from Equator",
-    x = "Distance from Equator (km, Binned)",
-    y = "Average Life Ladder Score"
-  ) +
-  scale_x_discrete(breaks = seq(0, 9500, by = 1000)) +
-  coord_cartesian(ylim = c(min(happiness_bands_life$avg_life_ladder, na.rm = TRUE) - 0.1, 
-                           max(happiness_bands_life$avg_life_ladder, na.rm = TRUE) + 0.1)) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
-This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
+Firstly, countries are grouped by their distance from the equator into 500km intervals to effectively display all the info. The plot then compares this info to the average GDP of each group. 
 
-<<<<<<< HEAD
+We can see the positive correlation between the two variables. As the distance from the equator begins to increase, the average GDP per capita also increases. There are some outliers such as the countries right at the equator and the ones at 2500km away, which is highlight by the golden bar. 
 
-```{r summary_stats}
-corr_covid <- covid_2020
-corr_happiness <- happiness
-climate_corr <- climate_awareness
-
-#>>>>>>> d4ea48c87fe9ba1036706f633cbdf80ef57674e3
-# combine the data and make a correlation matrix
-cor_matrix <- inner_join(corr_covid, corr_happiness, by = "country") |>
-              inner_join(climate_corr, by = "country")|>
-  # if not un-grounded R will add countries back into the dataframe
-  ungroup()|>
-  select(where(is.numeric), -year, -aware_base) |>
-  # renamed some columns to have shorter names
-  
-  rename(
-    corruption = perceptions_of_corruption,
-    healthy_life_expectancy = healthy_life_expectancy_at_birth,
-    freedom = freedom_to_make_life_choices
-  )|>
-  cor( use = "complete.obs")|>
-   round(digits = 3)
-
-
-corrplot(cor_matrix, method = "pie", order = "hclust")
-
-
-
-data_combined |>
-  group_by(continent)|>
-  summarise(
-    Social_Support_Life_Ladder_correlation = cor(social_support, life_ladder, use = "complete.obs")
-)
-
-```
-
-The next insight that we found is shown in \@ref(fig:insight2).
-
-```{r insight2, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
-
-
-joint_data <- inner_join(climate_awareness, happiness, by = "country")|>
-  
-  select(country, aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse,  freedom_to_make_life_choices)|>
-  
-  pivot_longer(cols  = c(aware_no, aware_alittle, aware_moderate, aware_alot, aware_refuse, ), names_to =  "awareness", values_to = "aware_percent")|>  
-  
-  ggplot()+
-    aes(
-      x = freedom_to_make_life_choices,
-      y = aware_percent,
-      colour = awareness
-    )+
-    geom_point()+
-    geom_smooth( method = "lm", color = "red", se = TRUE, size = 0.75) +
-    facet_wrap(~awareness)+
-    labs(
-    title = "Freedom to Make Life Choices and Awareness by Awareness Type",
-    x = "Awareness (%)",
-    y = "freedom to make life choices (%)"
-    )
-
-joint_data
-# This figure will have a height of 4 and a width of 6.
-# Feel free to change this, and to apply different sizes
-# to the other figures you create.
-```
-
-Finally, \@ref(fig:insight3) shows ...
-
-```{r insight3, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
-
-
-cyclones_data <- cyclones_data |>
-    mutate(MonthName = factor(month.abb[Month], levels = month.abb)) |>
-    relocate(MonthName, .after = Month)
-
-ggplot() +
-    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
-    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
-    geom_hex(data = cyclones_data, aes(x = long, y = lat, fill = Basin, alpha = ..count..), bins = 50) +
-    scale_fill_viridis_d(name = "Storm Category") +
-    scale_alpha(range = c(0.35, 1.5)) +
-    labs(
-        title = "North Atlantic and Northeast Pacific Cyclones by Basin",
-        x = "Longitude",
-        y = "Latitude"
-    ) +
-    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
-    scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
-    theme_minimal() 
-
-ggplot(cyclones_data) +
-    aes(x = ObservYear, y = MonthName, fill = ..count..) +
-    geom_bin2d() +
-    scale_fill_distiller(direction = 1, palette = "YlOrRd") +
-    labs(
-        title = "Storm Frequency by Month and Year",
-        x = "Observation Year",
-        y = "Month",
-        fill = "Frequency"
-    ) +
-    theme_minimal()
-
-
-ggplot(cyclones_data) +
-    aes(x = ObservYear, fill = category) +
-    geom_bar(position = "fill", width = 1) +
-    labs(
-        title = "Proportion of Storm Categories Over Time",
-        x = "Observation Year",
-        y = "Proportion",
-        fill = "Storm Category"
-    ) +
-    theme_minimal()
-
-happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
-                      "5" = "#fdae61", "6" = "#fee08b", "7" = "#66bd63",
-                      "8" = "#1a9850")
-
-ggplot(happiness_mapped) +
-    aes(x = long, y = lat, group = group, fill = factor(round(life_ladder))) +
-    geom_polygon(color = "white") +
-    scale_fill_manual(values = happiness_colors, name = "Happiness\nScore") +
-    theme_void() +
-    labs(title = "World Happiness Scores by Country")
-```
+A big reason as to why such a correlation exists is the effect of warmer weather on the climate. Warmer weather makes it harder to grow crops, limits water availability, increases number of parasites and potential diseases, and overall leads to poorer health.   
 
 # Conclusion and Future Work
 
-Overall, we found \<<general ideas>\>.
+Overall, we found that geographic and environmental factors, freedom to make life choices, and perceptions of corruption play significant roles in shaping a country's stability and overall well-being. In particular, regions closer to the equator show greater vulnerability to crises, such as COVID-19 outbreaks and natural disasters, which negatively impact GDP and social support. At the same time, greater personal freedom and transparency in governance correlate with higher life satisfaction, highlighting the importance of governance in fostering well-being.
 
-A second paragraph about our findings.
+Our findings reveal a complex relationship between proximity to the equator and national challenges, as countries within certain latitude ranges face compounded vulnerabilities. Additionally, freedom to make life choices appears closely tied to social support and satisfaction, suggesting that individual autonomy may be essential for improving quality of life. The significant correlation between perceived corruption and COVID-19 cases further underscores the importance of transparent governance, especially during public health crises.
 
-The next steps in this analysis are...
+The following steps in this analysis expand our approach by exploring regional variations within countries, considering the effects of policy measures, and assessing additional factors like urbanization and healthcare access. These expansions could provide a more nuanced understanding of the diverse factors affecting national well-being. Further research into causal links between geographic location and economic or social outcomes could deepen insights into how environmental and governance factors interact.
 
-The limitations of this analysis are as follows. (Do not simply list potential issues with sampling, but relate them to your analysis and how they affect your conclusions. An honest and complete acknowledgement of the limitations makes the analysis more trustworthy.)
+The limitations of this analysis include our reliance on national-level data, which may obscure subnational disparities that could offer a more detailed picture. Additionally, our analysis captures a specific moment, missing how policy shifts or environmental changes could alter these trends. Cultural differences, potential measurement biases, and the correlational nature of our findings limit the ability to establish causal links, as unmeasured factors may play significant roles in our observed trends. Recognizing these limitations makes our conclusions more robust and emphasizes the complex dynamics of well-being across global contexts.
 
 # References
 
@@ -760,3 +363,85 @@ The easiest way is to use Rmd's [footnote](https://bookdown.org/yihui/rmarkdown/
 Alternatively, you could make a list of citations with their main arguments and why they're relevent to your insights, methods, etc.
 
 The link above also references "bibtex" files. These are also extremely convenient, but have a steep learning curve and they make it difficult to tie them to an insight. If you use bibtext, then make sure that you provide a sentence to describe the source and it's relevance when you cite it - don't just add citations to the end of a sentence (this is common practice in academia, but I want to know that your citations are directly relevant for this assignmnet).
+
+
+# Apendix
+
+```{r world_map_cyclones_by_category, fig.cap="North Atlantic and Northeast Pacific Cyclones by Category"}
+world_map <- map_data("world")
+
+cyclones_data <- cyclones_data |>
+    mutate(MonthName = factor(month.abb[Month], levels = month.abb)) |>
+    relocate(MonthName, .after = Month)
+
+ggplot() +
+    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) + 
+    geom_hex(data = cyclones_data, aes(x = long, y = lat, fill = category), bins = 50, alpha = 0.7) +
+    scale_fill_viridis_d(name = "Storm Category") +
+    labs(
+        title = "North Atlantic and Northeast Pacific Cyclones by Category",
+        x = "Longitude",
+        y = "Latitude"
+    ) +
+    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
+    scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
+    theme_minimal()
+```
+
+```{r world_map_cyclones_by_basin, fig.cap="North Atlantic and Northeast Pacific Cyclones by Basin"}
+ggplot() +
+    geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray", color = "white") +
+    geom_rect(aes(xmin = -180, xmax = 180, ymin = -5, ymax = 5), fill = "red", alpha = 0.2) +
+    geom_hex(data = cyclones_data, aes(x = long, y = lat, fill = Basin, alpha = ..count..), bins = 50) +
+    scale_fill_viridis_d(name = "Storm Category") +
+    scale_alpha(range = c(0.35, 1.5)) +
+    labs(
+        title = "North Atlantic and Northeast Pacific Cyclones by Basin",
+        x = "Longitude",
+        y = "Latitude"
+    ) +
+    scale_x_continuous(breaks = c(-180, -90, 0, 90, 180)) +
+    scale_y_continuous(breaks = c(-90, -45, 0, 45, 90)) +
+    theme_minimal()
+```
+
+```{r storm_frequency_by_month_year, fig.cap="Storm Frequency by Month and Year"}
+ggplot(cyclones_data) +
+    aes(x = ObservYear, y = MonthName, fill = ..count..) +
+    geom_bin2d() +
+    scale_fill_distiller(direction = 1, palette = "YlOrRd") +
+    labs(
+        title = "Storm Frequency by Month and Year",
+        x = "Observation Year",
+        y = "Month",
+        fill = "Frequency"
+    ) +
+    theme_minimal()
+```
+
+```{r proportion_storm_categories_over_time, fig.cap="Proportion of Storm Categories Over Time"}
+ggplot(cyclones_data) +
+    aes(x = ObservYear, fill = category) +
+    geom_bar(position = "fill", width = 1) +
+    labs(
+        title = "Proportion of Storm Categories Over Time",
+        x = "Observation Year",
+        y = "Proportion",
+        fill = "Storm Category"
+    ) +
+    theme_minimal()
+```
+
+```{r world_happiness_scores, fig.cap="World Happiness Scores by Country"}
+happiness_colors <- c("1" = "#000000", "3" = "#aa0000", "4" = "#f46d43",
+                      "5" = "#fdae61", "6" = "#fee08b", "7" = "#66bd63",
+                      "8" = "#1a9850")
+
+ggplot(happiness_mapped) +
+    aes(x = long, y = lat, group = group, fill = factor(round(life_ladder))) +
+    geom_polygon(color = "white") +
+    scale_fill_manual(values = happiness_colors, name = "Happiness\nScore") +
+    theme_void() +
+    labs(title = "World Happiness Scores by Country")
+```
