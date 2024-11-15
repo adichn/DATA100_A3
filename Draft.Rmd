@@ -35,6 +35,9 @@ library(corrplot)
 library(scales)
 library(geosphere)
 library(ggridges)
+library(gtsummary)
+library(gapminder)
+library(glue)
 ```
 
 # Purpose
@@ -286,9 +289,6 @@ covid_happiness |> filter(!is.na(total_cases), !is.na(perceptions_of_corruption)
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
 
 ```{r summary_stats, fig.height=4, fig.width=6,}
-library(gtsummary)
-library(gapminder)
-
 insight_2_sum_stats <- covid_happiness |> group_by(continent) |> select(continent, perceptions_of_corruption, total_cases) |> 
   tbl_summary(by = continent)
 insight_2_sum_stats
