@@ -46,13 +46,6 @@ This paper will aim to show as freedom of citizens increase and citizen's qualit
 
 # Introduction
 
-Climate change is something that has been studied. Here's some relevant information about the context of our study.
-
-If needed, this paragraph is more information about the context.
-
-In this report, we are going to explore some aspects climate change and the impact and/or perceptions of it by using exploratory techniques. We'll explore \<<general description of data>\> using \<<general description of techniques>\>.
-
-By the end of this report, we will have shown ...
 
 
 Quality of life determines happiness which is impacted by many factors. 
@@ -393,13 +386,14 @@ ggplot(happiness_bands_life, aes(x = distance_band, y = avg_life_ladder)) +
 
 # Conclusion and Future Work
 
-Overall, we found \<<general ideas>\>.
+Overall, we found that geographic and environmental factors, freedom to make life choices, and perceptions of corruption play significant roles in shaping a country's stability and overall well-being. In particular, regions closer to the equator show greater vulnerability to crises, such as COVID-19 outbreaks and natural disasters, which negatively impact GDP and social support. At the same time, greater personal freedom and transparency in governance correlate with higher life satisfaction, highlighting the importance of governance in fostering well-being.
 
-A second paragraph about our findings.
+Our findings reveal a complex relationship between proximity to the equator and national challenges, as countries within certain latitude ranges face compounded vulnerabilities. Additionally, freedom to make life choices appears closely tied to social support and satisfaction, suggesting that individual autonomy may be essential for improving quality of life. The significant correlation between perceived corruption and COVID-19 cases further underscores the importance of transparent governance, especially during public health crises.
 
-The next steps in this analysis are...
+The following steps in this analysis expand our approach by exploring regional variations within countries, considering the effects of policy measures, and assessing additional factors like urbanization and healthcare access. These expansions could provide a more nuanced understanding of the diverse factors affecting national well-being. Further research into causal links between geographic location and economic or social outcomes could deepen insights into how environmental and governance factors interact.
 
-The limitations of this analysis are as follows. (Do not simply list potential issues with sampling, but relate them to your analysis and how they affect your conclusions. An honest and complete acknowledgement of the limitations makes the analysis more trustworthy.)
+The limitations of this analysis include our reliance on national-level data, which may obscure subnational disparities that could offer a more detailed picture. Additionally, our analysis captures a specific moment, missing how policy shifts or environmental changes could alter these trends. Cultural differences, potential measurement biases, and the correlational nature of our findings limit the ability to establish causal links, as unmeasured factors may play significant roles in our observed trends. Recognizing these limitations makes our conclusions more robust and emphasizes the complex dynamics of well-being across global contexts.
+
 
 # References
 
