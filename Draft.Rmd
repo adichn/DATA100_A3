@@ -328,8 +328,13 @@ insight_2_sum_stats
 ```
 
 
-Finally, \@ref(fig:insight3) shows ...
+Finally, \@ref(fig:insight3) shows the impacts of countries distances from the equator on their average GDP per capita.
 
+Firstly, countries are grouped by their distance from the equator into 500km intervals to effectively display all the info. The plot then compares this info to the average GDP of each group. 
+
+We can see the positive correlation between the two variables. As the distance from the equator begins to increase, the average GDP per capita also increases. There are some outliers such as the countries right at the equator and the ones at 2500km away, which is highlight by the golden bar. 
+
+A big reason as to why such a correlation exists is the effect of warmer weather on the climate. Warmer weather makes it harder to grow crops, limits water availability, increases number of parasites and potential diseases, and overall leads to poorer health.   
 ```{r insight3, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
 happiness <- happiness|>
   left_join(
