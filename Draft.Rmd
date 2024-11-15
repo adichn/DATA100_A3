@@ -222,8 +222,9 @@ happiness <- happiness |>
 
 ```
 
-`happiness` dataset is global census on a countries economic, social, and political stability provided by World Happiness Report. 
+The `happiness` dataset was loaded, containing data on countries, economic, social, and political stability from the World Happiness Report. Some country names were adjusted to match the naming conventions in the `world_map` dataset to ensure consistency across datasets. This adjustment was necessary for accurate geographic mapping.
 
+After renaming, the `happiness` dataset was joined with `world_map` to incorporate latitude and longitude coordinates for each country, enabling the visualization of global data trends on a map. Additional geographic information, including the distance of each country from the equator and hemisphere designation, was also added by using the centroids (geographical center) of each country's polygon in the `world` dataset. This enhancement facilitates spatial analysis based on proximity to the equator and hemisphere differences.
 
 
 ## Combining the Data
