@@ -42,21 +42,15 @@ This study aims to investigate the relationship between freedom of citizens (i.e
 
 # Abstract
 
-This paper will aim to show as freedom of citizens increase and citizen's quality of life improves. The relationship we look for is a positive correlation. First, we explore the relationship of social support and life expectancy. We observe more freedom allows for better opportunities for social support. 
+This paper will aim to show as freedom of citizens increase and citizen's quality of life improves. The relationship we look for is a positive correlation. First, for the first insight, we explore the relationship of cyclone frequencies and geological location. Cyclones of higher category appear more frequently near the equator (~2000 km from the equator), more freedom allows for an individual to choose where they can locate themselves and those who choose to live farther away from the equator may feel less burdened by constant cyclones. Second, a more just government allows for a citizen to live with more freedom, from th second insight, "perception of corruption" for a government and "COVID cases" shows us for some continents, there are lower cases of COVID when the government is perceived to be fair. Though there also exists a negative correlation, where continents (i.e. Asia) with more corrupt ruling powers have lower total count of COVID cases. Third, again back to the notion of choosing where to live, from the third insight, we observe average GDP in relation to distance from the equator. Areas farther from the equator tend to have higher on average higher GDP than those closer to the equator. We now show evidence to further support our original purpose. That freedom of citizens in fact impacts the quality of life for citizens.
 
 # Introduction
 
-Climate change is something that has been studied. Here's some relevant information about the context of our study.
+Quality of life determines happiness which is impacted by many factors. Some important factors are environmental and socioeconomic factors. Environmentally we must keep in mind location, since different countries in different continents vary in climate, geographic identity, etc. Whilst socioeconomically, different countries have different forms of government, culture.
 
-If needed, this paragraph is more information about the context.
+In this report, we will explore the geographical aspect and governance aspect of freedom and what do these factors impact on an individual's daily life through exploring and digesting our data. We will explore data; COVID cases during the year 2020, cyclones from NOAA (National Oceanic and Atmospheric Administration), happiness data from (World Happiness Report). We apply uni-variate and bi-variate analysis, specifically for the bard chart and ridge line graph we care about the frequency (weight) of our independent variables, for the scatter plot to determine the relationship between our variable x and y is applying bivariate analysis.
 
-In this report, we are going to explore some aspects climate change and the impact and/or perceptions of it by using exploratory techniques. We'll explore \<<general description of data>\> using \<<general description of techniques>\>.
-
-By the end of this report, we will have shown ...
-
-
-Quality of life determines happiness which is impacted by many factors. 
-
+By the end of the report, we will have shown in general that as freedom increases for citizens and individuals, so to does quality of life. 
 
 # Data Description
 
@@ -229,48 +223,21 @@ happiness <- happiness |>
 
 ```
 
-`happiness` dataset is global census on a countries economic, social, and political stability provided by World Happiness Report. 
-
-
+The `happiness` data set is global census on a countries economic, social, and political stability provided by World Happiness Report. From part 1, extra steps were applied to clean the data set. Some steps taken are renaming countries to allow for easy joining of data sets (happiness dataset and world map). For this case only specific columns were needed and hence selected specific columns.
 
 ## Combining the Data
 
-Explain how any combinations of data were performed. Explain what kind of join was needed, whether columns had to be modified (for example, matching "country" names.)
-
-For our second insight we needed to join the COVID_2020 data along with the happiness data, to accomplish this we applied the "inner_join()" function with the argument "by = continent'". This allo
+For the first data set, Cyclones data "sf_join" was used to create geographical data for a map for distances of cyclones from the equator (this was not used but is in the appendix). Only necessary columns were selected from the data set.
+For the second data set, World data was used from 'rnaturalearth' package. First countries were renamed to allow for easier joining of data sets. New columns were created for the world map to be created. Then the data set is combined with COVID_2020 by country.
+For the third data set, country names were changed for easier merge. Then applying "right_join" to keep the data from world_map and combine with happiness report data. This again is combined with world data, this time applying "left_join" to keep the data from happiness data and combine with world data.
 
 # Exploratory Data Analysis
 
-We explored many aspects of the data, but will demonstrate three. These are \<\<Geographic and environmental Factors VS a countries overall well being\>\>, \<\<Covid Cases Vs perception of corruption\>\>, and \<<Freedom to Make Life Choices & Climate Awareness (OR DISTANCE VS COVID)>\>
+We explored many aspects of the data, but will demonstrate three. These are \<\<Geographic and environmental Factors VS a countries overall well being\>\>, \<\<Covid Cases Vs perception of corruption\>\>, and \<<Life ladder and GDP vs Distance from Equator>\>
 
-The analysis highlighted an interesting finding, as shown in \@ref(fig:insight1): a significant concentration of COVID-19 cases appears within the 1500-2500 km range from the equator, suggesting a strong relationship between COVID-19 cases and cyclone activity within a margin of approximately 9 degrees of longitude. This area also highlights a geographical strip pointing to a genreal trend of lower GDP, government stability, and overall happiness.  
+The analysis highlighted an interesting finding, as shown in \@ref(fig:insight1): a significant concentration of COVID-19 cases appears within the 1500-2500 km range from the equator, suggesting a strong relationship between COVID-19 cases and cyclone activity within a margin of approximately 9 degrees of longitude. This area also highlights a geographical strip pointing to a general trend of lower GDP, government stability, and overall happiness.  
 
 ```{r insight1, fig.cap=""}
-
-covid_2020_world <- covid_2020 |>
-  filter(
-    total_cases < 50000000 
-  )
-
-ggplot(covid_2020_world, aes(x = distance_to_equator_km, y = total_cases)) +
-  geom_point(color = "steelblue", alpha = 0.3) +  # Lower alpha for more transparency
-  geom_density_2d(color = "darkorange") +  # Density lines to show clustering
-  geom_vline(xintercept = 1500, linetype = "dashed", color = "black") +
-  geom_vline(xintercept = 2500, linetype = "dashed", color = "black")  +
-  labs(
-    title = "Scatter Plot of COVID-19 Cases by Distance from Equator",
-    x = "Distance from Equator (km)",
-    y = "Total COVID-19 Cases"
-  ) +
-  coord_cartesian(xlim = c(0, 10250)) +
-  scale_y_continuous(
-    labels = scales::comma,
-    trans = "log10",
-    breaks = c(1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 5e7)  
-  ) +
-  theme_minimal()
-
-
 
 ggplot(cyclones_data |> filter(!is.na(category)), aes(x = km_distance_from_equator, y = category, fill = category)) +
   geom_density_ridges(scale = 2, alpha = 0.7, color = "black") +
@@ -302,7 +269,7 @@ The next insight that we found is shown in \@ref(fig:insight2).
 
 ```{r insight2, fig.height=4, fig.width=6, fig.cap=""}
 
-covid_happiness <- inner_join(covid_2020_world, happiness, by = "country")
+covid_happiness <- inner_join(covid_2020, happiness, by = "country")
 
 filter_covid_happiness <- covid_happiness |> filter(!is.na(total_cases), !is.na(perceptions_of_corruption))
 
@@ -318,7 +285,7 @@ covid_happiness |> filter(!is.na(total_cases), !is.na(perceptions_of_corruption)
 
 This insight is supported by the summary statistics in table \@ref(tab:summary_stats)
 
-```{r summary_stats}
+```{r summary_stats, fig.height=4, fig.width=6,}
 library(gtsummary)
 library(gapminder)
 
@@ -327,10 +294,11 @@ insight_2_sum_stats <- covid_happiness |> group_by(continent) |> select(continen
 insight_2_sum_stats
 ```
 
+From [Scientific Reports (Sci Rep)](https://www.nature.com/articles/s41598-021-02802-1), the paper implies that corruption leads to lower rates of vaccination. This can result in higher counts of COVID cases. Also [Globalization and Health](https://globalizationandhealth.biomedcentral.com/articles/10.1186/s12992-023-00994-x) also accounts to how corruption can manifest due to catastrophic events such as a pandemic. Then corruption affects how we tackle on health issues and health issues also affect how corruption is procured in the globlal stage.
 
 Finally, \@ref(fig:insight3) shows ...
 
-```{r insight3, fig.height=4, fig.width=6, fig.cap="This is a figure caption that you will need to change in order to get good marks in the visualization rubric items."}
+```{r insight3, fig.height=4, fig.width=6, fig.cap=""}
 happiness <- happiness|>
   left_join(
     rnaturalearth::ne_countries(scale = "medium", returnclass = "sf") |>
@@ -364,26 +332,6 @@ ggplot(happiness_bands_gdp, aes(x = distance_band, y = avg_log_gdp_per_capita)) 
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 
-# Group data into 500 km distance bands and calculate average life ladder score for each band
-happiness_bands_life <- happiness |>
-  mutate(distance_band = cut(distance_to_equator_km.y, breaks = seq(0, 10000, by = 500), include.lowest = TRUE, labels = seq(0, 9500, by = 500))) |>
-  group_by(distance_band) |>
-  summarize(avg_life_ladder = mean(life_ladder, na.rm = TRUE))
-
-# Plot for life ladder
-ggplot(happiness_bands_life, aes(x = distance_band, y = avg_life_ladder)) +
-  geom_bar(stat = "identity", fill = "steelblue") +
-  annotate("rect", xmin = "1500", xmax = "2500", ymin = 0, ymax = Inf, fill = "orange", alpha = 0.8) +
-  labs(
-    title = "Average Life Ladder Score by Distance from Equator",
-    x = "Distance from Equator (km, Binned)",
-    y = "Average Life Ladder Score"
-  ) +
-  scale_x_discrete(breaks = seq(0, 9500, by = 1000)) +
-  coord_cartesian(ylim = c(min(happiness_bands_life$avg_life_ladder, na.rm = TRUE) - 0.1, 
-                           max(happiness_bands_life$avg_life_ladder, na.rm = TRUE) + 0.1)) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 ```
 
 # Conclusion and Future Work
